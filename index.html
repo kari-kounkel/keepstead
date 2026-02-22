@@ -1,0 +1,1817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tax Organizer | Keepstead</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+
+</script>
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --cream: #faf7f2;
+    --warm: #f5ede0;
+    --accent: #c84b31;
+    --gold: #d4a843;
+    --sage: #5a7a5e;
+    --border: #d9cfc4;
+    --muted: #7a6f65;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── AUTH SCREEN ── */
+  .auth-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ink);
+    padding: 2rem;
+  }
+
+  .auth-box {
+    background: var(--cream);
+    border-radius: 16px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .auth-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    color: var(--ink);
+    margin-bottom: 0.25rem;
+  }
+
+  .auth-sub {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 2rem;
+  }
+
+  .auth-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .auth-tab {
+    flex: 1;
+    padding: 0.6rem;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+
+  .auth-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  .auth-field {
+    margin-bottom: 1rem;
+  }
+
+  .auth-field label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .auth-field input {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    background: white;
+    color: var(--ink);
+    transition: border-color 0.2s;
+  }
+
+  .auth-field input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .auth-btn {
+    width: 100%;
+    padding: 0.85rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: all 0.2s;
+  }
+
+  .auth-btn:hover { background: #a33a23; }
+  .auth-error {
+    color: var(--accent);
+    font-size: 0.85rem;
+    margin-top: 0.75rem;
+    text-align: center;
+  }
+
+  /* ── MAIN APP ── */
+  .app { display: none; }
+
+  .header {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 1.75rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .header-left h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+  }
+
+  .header-left p {
+    font-size: 0.8rem;
+    color: #a89e94;
+    margin-top: 0.15rem;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .user-pill {
+    font-size: 0.8rem;
+    color: #a89e94;
+  }
+
+  .btn-logout {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #a89e94;
+    padding: 0.4rem 0.9rem;
+    border-radius: 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-logout:hover { border-color: white; color: white; }
+
+  .years-nav {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1.25rem 1rem;
+    background: var(--warm);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .year-tab {
+    padding: 0.45rem 1.1rem;
+    border: 2px solid var(--border);
+    border-radius: 2rem;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--muted);
+  }
+
+  .year-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  .year-tab:hover:not(.active) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .save-bar {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 0.6rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  .btn-save {
+    background: var(--sage);
+    color: white;
+    border: none;
+    padding: 0.45rem 1.25rem;
+    border-radius: 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-save:hover { background: #486347; }
+  .btn-save:disabled { background: var(--border); cursor: default; }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1.5rem 1.5rem 4rem;
+  }
+
+  .year-section { display: none; }
+  .year-section.active { display: block; }
+
+  .year-banner {
+    background: var(--ink);
+    color: var(--cream);
+    border-radius: 12px 12px 0 0;
+    padding: 1.1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.25rem;
+  }
+
+  .year-banner h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+  }
+
+  .status-pill {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.8rem;
+    border-radius: 2rem;
+    background: rgba(255,255,255,0.1);
+    color: var(--gold);
+  }
+
+  .card {
+    background: white;
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 1.5rem;
+  }
+
+  .card:last-of-type {
+    border-radius: 0 0 12px 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  .card + .card { border-top: 1px solid var(--border); }
+
+  .section-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 0.85rem;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+  .form-row.single { grid-template-columns: 1fr; }
+
+  .field { display: flex; flex-direction: column; gap: 0.35rem; }
+
+  label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  select,
+  textarea {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
+    padding: 0.55rem 0.8rem;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    background: var(--cream);
+    color: var(--ink);
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  textarea { resize: vertical; min-height: 72px; }
+
+  .money-field { position: relative; }
+  .money-field input { padding-left: 1.5rem; }
+  .money-field::before {
+    content: '$';
+    position: absolute;
+    left: 0.7rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 0.88rem;
+    pointer-events: none;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px dashed var(--border);
+    margin: 1.1rem 0;
+  }
+
+  .note-box {
+    background: #fff9f0;
+    border: 1px solid #f0d9b5;
+    border-left: 4px solid var(--gold);
+    border-radius: 0 8px 8px 0;
+    padding: 0.75rem 1rem;
+    font-size: 0.83rem;
+    color: #6b5c3e;
+    margin-bottom: 0.85rem;
+    line-height: 1.5;
+  }
+
+  /* ── RECEIPT TOTALER ── */
+  .receipt-totaler {
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+  }
+
+  .receipt-header {
+    background: var(--warm);
+    padding: 0.6rem 0.85rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    display: grid;
+    grid-template-columns: 1fr 120px 32px;
+    gap: 0.5rem;
+  }
+
+  .receipt-row {
+    display: grid;
+    grid-template-columns: 1fr 120px 32px;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    border-top: 1px solid var(--border);
+    align-items: center;
+  }
+
+  .receipt-row input {
+    font-size: 0.85rem;
+    padding: 0.35rem 0.6rem;
+    margin: 0;
+  }
+
+  .receipt-row .money-input {
+    position: relative;
+  }
+
+  .receipt-row .money-input::before {
+    content: '$';
+    position: absolute;
+    left: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 0.8rem;
+    pointer-events: none;
+  }
+
+  .receipt-row .money-input input {
+    padding-left: 1.2rem;
+  }
+
+  .btn-remove-row {
+    background: transparent;
+    border: none;
+    color: var(--border);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+
+  .btn-remove-row:hover { color: var(--accent); }
+
+  .receipt-footer {
+    background: var(--warm);
+    padding: 0.6rem 0.85rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .btn-add-row {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    padding: 0.3rem 0.75rem;
+    border-radius: 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-add-row:hover { border-color: var(--sage); color: var(--sage); }
+
+  .receipt-total {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .receipt-total span {
+    color: var(--sage);
+    font-size: 1rem;
+  }
+
+  /* ── CACFP ── */
+  .cacfp-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 0.85rem;
+    background: var(--cream);
+    transition: border-color 0.2s;
+  }
+
+  .cacfp-toggle:hover { border-color: var(--sage); }
+  .cacfp-toggle input { accent-color: var(--sage); width: 17px; height: 17px; }
+  .cacfp-toggle-label { font-size: 0.88rem; font-weight: 500; }
+  .cacfp-toggle-sub { font-size: 0.76rem; color: var(--muted); }
+  .cacfp-fields { display: none; }
+  .cacfp-fields.visible { display: block; }
+
+  /* ── ESTIMATED TAX PAYMENTS ── */
+  .quarter-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .quarter-item { display: flex; flex-direction: column; gap: 0.35rem; }
+  .quarter-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-align: center;
+  }
+  .quarter-sub {
+    font-size: 0.68rem;
+    color: var(--border);
+    text-align: center;
+    margin-top: -0.2rem;
+  }
+
+  .quarter-total {
+    background: var(--warm);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 0.55rem 0.8rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--sage);
+    text-align: right;
+  }
+
+  /* ── CHECKBOX ── */
+  .checkbox-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+  }
+
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.86rem;
+    cursor: pointer;
+  }
+
+  .checkbox-item input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  /* ── CLIENT INFO ── */
+  .client-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  /* ── SUBMIT ── */
+  .submit-area {
+    text-align: center;
+    padding: 1.5rem 0 1rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.85rem 2.25rem;
+    border-radius: 2rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary:hover {
+    background: #a33a23;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(200,75,49,0.25);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--muted);
+    border: 1.5px solid var(--border);
+    padding: 0.75rem 1.5rem;
+    border-radius: 2rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-secondary:hover { border-color: var(--ink); color: var(--ink); }
+
+  /* ── SUMMARY ── */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .summary-card {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  .summary-card h4 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent);
+  }
+
+  .summary-card p { font-size: 0.83rem; color: var(--muted); line-height: 1.7; }
+
+  .footer-note {
+    text-align: center;
+    font-size: 0.76rem;
+    color: var(--muted);
+    margin-top: 1rem;
+    line-height: 1.6;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.85rem 1.5rem;
+    border-radius: 2rem;
+    font-size: 0.88rem;
+    font-family: 'DM Sans', sans-serif;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    z-index: 9999;
+    max-width: 90vw;
+    text-align: center;
+    animation: fadeup 0.3s ease;
+  }
+
+  @keyframes fadeup {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  /* ── PRINT ── */
+
+  /* ── CALC MODAL ── */
+  .calc-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,26,46,0.6);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .calc-overlay.open { display: flex; }
+  .calc-modal {
+    background: var(--cream);
+    border-radius: 14px;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 420px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .calc-modal h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+  }
+  .calc-modal .calc-sub {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+  .calc-line {
+    display: grid;
+    grid-template-columns: 1fr 110px 28px;
+    gap: 0.4rem;
+    margin-bottom: 0.4rem;
+    align-items: center;
+  }
+  .calc-line input {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+  }
+  .calc-line .calc-money { position: relative; }
+  .calc-line .calc-money::before {
+    content: '$';
+    position: absolute;
+    left: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 0.8rem;
+    pointer-events: none;
+  }
+  .calc-line .calc-money input { padding-left: 1.2rem; }
+  .calc-total-bar {
+    background: var(--ink);
+    color: var(--cream);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0.85rem 0;
+    font-size: 0.9rem;
+  }
+  .calc-total-bar span { font-size: 1.1rem; font-weight: 600; color: var(--gold); }
+  .calc-actions { display: flex; gap: 0.5rem; }
+  .btn-use-total {
+    flex: 1;
+    background: var(--sage);
+    color: white;
+    border: none;
+    padding: 0.65rem;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-close-calc {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    padding: 0.65rem 1rem;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+  .btn-add-calc-row {
+    background: transparent;
+    border: 1.5px dashed var(--border);
+    color: var(--muted);
+    padding: 0.4rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 0.5rem;
+    transition: all 0.2s;
+  }
+  .btn-add-calc-row:hover { border-color: var(--sage); color: var(--sage); }
+
+  @media print {
+    .auth-screen, .years-nav, .save-bar, .submit-area, .btn-save,
+    .btn-add-row, .btn-remove-row, .btn-logout, .header-right { display: none !important; }
+
+    .app { display: block !important; }
+    .year-section { display: block !important; page-break-after: always; }
+    .year-banner { background: #1a1a2e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    input, select, textarea {
+      border: none !important;
+      background: transparent !important;
+      height: auto !important;
+      overflow: visible !important;
+      white-space: pre-wrap !important;
+      word-break: break-word !important;
+      -webkit-appearance: none;
+    }
+
+    textarea {
+      height: auto !important;
+      min-height: 0 !important;
+      overflow: visible !important;
+    }
+
+    .card { page-break-inside: avoid; border: 1px solid #ccc !important; }
+    .field { page-break-inside: avoid; margin-bottom: 0.4rem; }
+    .money-field::before { display: none; }
+    body { font-size: 10pt; }
+    .receipt-row input { border-bottom: 1px solid #ccc !important; }
+  }
+
+  @media (max-width: 600px) {
+    .form-row, .form-row.three { grid-template-columns: 1fr; }
+    .quarter-grid { grid-template-columns: 1fr 1fr; }
+    .checkbox-group { grid-template-columns: 1fr; }
+    .summary-grid { grid-template-columns: 1fr; }
+    .receipt-header, .receipt-row { grid-template-columns: 1fr 100px 28px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── AUTH ── -->
+<div class="auth-screen" id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">Keepstead</div>
+    <div class="auth-sub">Tax Organizer · Home Daycare · CARES Consulting</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="switchAuthTab('signup')">Create Account</button>
+    </div>
+    <div id="login-form">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="your@email.com">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••">
+      </div>
+      <button class="auth-btn" onclick="handleLogin()">Sign In</button>
+    </div>
+    <div id="signup-form" style="display:none;">
+      <div class="auth-field">
+        <label>Full Name</label>
+        <input type="text" id="signup-name" placeholder="Your name">
+      </div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="signup-email" placeholder="your@email.com">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="signup-password" placeholder="Min 6 characters">
+      </div>
+      <button class="auth-btn" onclick="handleSignup()">Create Account</button>
+    </div>
+    <div class="auth-error" id="auth-error"></div>
+    <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid #d9cfc4;font-size:0.7rem;color:#7a6f65;line-height:1.8;text-align:center;">
+      Keepstead™ is the intellectual property of<br>
+      <strong style='color:#1a1a2e;'>CARES Consulting Inc. &amp; Kari Hoglund Kounkel</strong><br>
+      All rights reserved. Unauthorized use or distribution is strictly prohibited.<br>
+      <span style='color:#d4a843;'>© 2025–2026 All Rights Reserved</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div class="app" id="app">
+
+  <div class="header">
+    <div class="header-left">
+      <h1>Keepstead</h1>
+      <p>Home Daycare Tax Organizer · 2022–2025</p>
+    </div>
+    <div class="header-right">
+      <span class="user-pill" id="user-email-display"></span>
+      <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="years-nav">
+    <button class="year-tab active" onclick="showSection('info')">Client Info</button>
+    <button class="year-tab" onclick="showSection('2022')">2022</button>
+    <button class="year-tab" onclick="showSection('2023')">2023</button>
+    <button class="year-tab" onclick="showSection('2024')">2024</button>
+    <button class="year-tab" onclick="showSection('2025')">2025</button>
+    <button class="year-tab" onclick="showSection('summary')">Summary</button>
+  </div>
+
+  <div class="save-bar">
+    <span id="save-status">All changes saved when you click Save.</span>
+    <button class="btn-save" onclick="saveAll()">💾 Save All</button>
+  </div>
+
+  <div class="container">
+
+    <!-- CLIENT INFO -->
+    <div class="year-section active" id="section-info">
+      <div class="client-card">
+        <div class="section-label">Client Information</div>
+        <div class="form-row">
+          <div class="field">
+            <label>Full Legal Name</label>
+            <input type="text" id="client-name" placeholder="As it appears on SSN card">
+          </div>
+          <div class="field">
+            <label>Social Security Number</label>
+            <input type="text" id="client-ssn" placeholder="XXX-XX-XXXX">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Filing Status</label>
+            <select id="client-filing-status">
+              <option value="">Select...</option>
+              <option>Single</option>
+              <option>Married Filing Jointly</option>
+              <option>Married Filing Separately</option>
+              <option>Head of Household</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input type="text" id="client-phone" placeholder="Best contact number">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Home Address</label>
+            <input type="text" id="client-address" placeholder="Street, City, State, ZIP">
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="client-email" placeholder="For document delivery">
+          </div>
+        </div>
+
+        <hr class="divider">
+        <div class="section-label">Daycare Business</div>
+        <div class="form-row">
+          <div class="field">
+            <label>Business Name (if any)</label>
+            <input type="text" id="client-biz-name" placeholder="Or leave blank">
+          </div>
+          <div class="field">
+            <label>State License Number</label>
+            <input type="text" id="client-license" placeholder="Daycare license #">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Year Daycare Started</label>
+            <input type="text" id="client-start-year" placeholder="e.g. 2018">
+          </div>
+          <div class="field">
+            <label>EIN (if applicable)</label>
+            <input type="text" id="client-ein" placeholder="Leave blank if using SSN">
+          </div>
+        </div>
+
+        <hr class="divider">
+        <div class="section-label">Home Details — Time-Space %</div>
+        <div class="note-box">💡 The Time-Space % determines what portion of home expenses are deductible. Pull from prior return or we calculate fresh.</div>
+        <div class="form-row three">
+          <div class="field">
+            <label>Total Sq Ft of Home</label>
+            <input type="number" id="client-home-sqft" placeholder="e.g. 1400">
+          </div>
+          <div class="field">
+            <label>Sq Ft Used for Daycare</label>
+            <input type="number" id="client-daycare-sqft" placeholder="e.g. 600">
+          </div>
+          <div class="field">
+            <label>Hours/Week Daycare Runs</label>
+            <input type="number" id="client-hours-week" placeholder="e.g. 45">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>T/S % from Prior Return</label>
+            <input type="text" id="client-ts-pct" placeholder="e.g. 34% — or leave blank">
+          </div>
+          <div class="field">
+            <label>Weeks Operated Per Year (avg)</label>
+            <input type="number" id="client-weeks-year" placeholder="e.g. 50">
+          </div>
+        </div>
+
+        <hr class="divider">
+        <div class="section-label">Preparer Notes</div>
+        <div class="form-row single">
+          <div class="field">
+            <textarea id="client-notes" placeholder="Notes, flags, anything to track for this client..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="submit-area">
+        <button class="btn-primary" onclick="showSection('2022')">Continue to 2022 →</button>
+      </div>
+    </div>
+
+    <!-- YEAR SECTIONS -->
+    <div class="year-section" id="section-2022"></div>
+    <div class="year-section" id="section-2023"></div>
+    <div class="year-section" id="section-2024"></div>
+    <div class="year-section" id="section-2025"></div>
+
+    <!-- SUMMARY -->
+    <div class="year-section" id="section-summary">
+      <div class="client-card">
+        <div class="section-label">Four-Year Overview</div>
+        <h2 style="font-family:'DM Serif Display',serif;font-size:1.4rem;margin-bottom:0.4rem;">Here's what we've got.</h2>
+        <p style="color:var(--muted);font-size:0.88rem;margin-bottom:1.25rem;">Review and flag anything missing or needing a follow-up.</p>
+        <div class="summary-grid" id="summary-grid"></div>
+        <hr class="divider" style="margin-top:1.25rem;">
+        <div class="form-row single" style="margin-top:1rem;">
+          <div class="field">
+            <label>Preparer Summary Notes / Client Homework</label>
+            <textarea id="summary-notes" placeholder="What does the client still need to gather? What's outstanding? What's ready to file?"></textarea>
+          </div>
+        </div>
+        <div class="submit-area">
+          <button class="btn-secondary" onclick="window.print()">🖨 Print / Save PDF</button>
+          <button class="btn-primary" id="final-submit-btn" onclick="saveAll()">💾 Save to Keepstead</button>
+        </div>
+        <p class="footer-note">Keepstead · CARES Consulting Tax Services<br>Information collected for preparation purposes only.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── SUPABASE ──
+const SUPABASE_URL = 'https://fufhjraudksavfncpdrm.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1ZmhqcmF1ZGtzYXZmbmNwZHJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1OTE3MDYsImV4cCI6MjA4NjE2NzcwNn0.JRjvoMM2Q2bFJtggzsOGW0x1GO3L4JpNF2zt3BqA4Ug';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+const years = ['2022','2023','2024','2025'];
+
+// ── AUTH ──
+async function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) showAuthError(error.message);
+}
+
+async function handleSignup() {
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  const name = document.getElementById('signup-name').value.trim();
+  const { error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name } } });
+  if (error) showAuthError(error.message);
+  else showAuthError('Check your email to confirm your account, then sign in.');
+}
+
+async function handleLogout() {
+  await sb.auth.signOut();
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+function showAuthError(msg) {
+  document.getElementById('auth-error').textContent = msg;
+}
+
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='signup')));
+  document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('signup-form').style.display = tab === 'signup' ? 'block' : 'none';
+  document.getElementById('auth-error').textContent = '';
+}
+
+sb.auth.onAuthStateChange((event, session) => {
+  if (session?.user) {
+    currentUser = session.user;
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('user-email-display').textContent = session.user.email;
+    loadSavedData();
+  } else {
+    currentUser = null;
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+});
+
+// ── BUILD YEAR SECTIONS ──
+const expenseCategories = [
+  { id: 'supplies', label: 'Supplies & Art Materials' },
+  { id: 'food', label: 'Food & Snacks (non-CACFP)' },
+  { id: 'toys', label: 'Toys & Educational Materials' },
+  { id: 'furniture', label: 'Furniture & Equipment' },
+  { id: 'cleaning', label: 'Cleaning Supplies' },
+  { id: 'insurance', label: 'Liability Insurance' },
+  { id: 'advertising', label: 'Advertising / Website' },
+  { id: 'training', label: 'Training & Licensing' },
+  { id: 'utilities', label: 'Utilities (T/S % applied)' },
+  { id: 'mortgage', label: 'Mortgage Interest / Rent' },
+  { id: 'repairs', label: 'Home Repairs / Maintenance' },
+  { id: 'phone', label: 'Phone / Internet' },
+];
+
+years.forEach(year => {
+  const sec = document.getElementById(`section-${year}`);
+  const prevTarget = years.indexOf(year) === 0 ? 'info' : years[years.indexOf(year)-1];
+  const nextIdx = years.indexOf(year) + 1;
+  const nextTarget = nextIdx < years.length ? years[nextIdx] : 'summary';
+  const nextLabel = nextIdx < years.length ? `Continue to ${years[nextIdx]} →` : 'Review Summary →';
+
+  sec.innerHTML = `
+    <div class="year-banner">
+      <h2>Tax Year ${year}</h2>
+      <span class="status-pill">In Progress</span>
+    </div>
+
+    <!-- INCOME -->
+    <div class="card">
+      <div class="section-label">Income</div>
+      <div class="form-row">
+        <div class="field">
+          <label>Total Daycare Tuition Collected</label>
+          <div class="money-field"><input type="number" id="${year}-income-total" placeholder="0.00" oninput="recalc('${year}')"></div>
+        </div>
+        <div class="field">
+          <label># of Children Enrolled</label>
+          <input type="number" id="${year}-children" placeholder="e.g. 6">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Govt Subsidy / CCAP Payments</label>
+          <div class="money-field"><input type="number" id="${year}-subsidy" placeholder="0.00" oninput="recalc('${year}')"></div>
+        </div>
+        <div class="field">
+          <label>Other Daycare Income</label>
+          <div class="money-field"><input type="number" id="${year}-other-income" placeholder="0.00" oninput="recalc('${year}')"></div>
+        </div>
+      </div>
+      <div class="form-row single">
+        <div class="field">
+          <label>Other Income Notes (W-2, 1099, etc.)</label>
+          <textarea id="${year}-other-income-notes" placeholder="Source and amount — e.g. Part-time job $8,400, 1099 from XYZ $2,000"></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>1099s Received?</label>
+          <select id="${year}-1099s">
+            <option value="">Select...</option>
+            <option>Yes — have them</option>
+            <option>Yes — need to locate</option>
+            <option>No</option>
+            <option>Not sure</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Total Income (auto)</label>
+          <div class="quarter-total" id="${year}-total-income">$0.00</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ESTIMATED TAX PAYMENTS -->
+    <div class="card">
+      <div class="section-label">Estimated Tax Payments to IRS</div>
+      <div class="note-box">💡 Quarterly payments made directly to the IRS offset what you owe. Enter each quarter paid.</div>
+      <div class="quarter-grid">
+        <div class="quarter-item">
+          <div class="quarter-label">Q1</div>
+          <div class="quarter-sub">Due April ${year}</div>
+          <div class="money-field"><input type="number" id="${year}-est-q1" placeholder="0.00" oninput="recalcEst('${year}')"></div>
+        </div>
+        <div class="quarter-item">
+          <div class="quarter-label">Q2</div>
+          <div class="quarter-sub">Due June ${year}</div>
+          <div class="money-field"><input type="number" id="${year}-est-q2" placeholder="0.00" oninput="recalcEst('${year}')"></div>
+        </div>
+        <div class="quarter-item">
+          <div class="quarter-label">Q3</div>
+          <div class="quarter-sub">Due Sept ${year}</div>
+          <div class="money-field"><input type="number" id="${year}-est-q3" placeholder="0.00" oninput="recalcEst('${year}')"></div>
+        </div>
+        <div class="quarter-item">
+          <div class="quarter-label">Q4</div>
+          <div class="quarter-sub">Due Jan ${parseInt(year)+1}</div>
+          <div class="money-field"><input type="number" id="${year}-est-q4" placeholder="0.00" oninput="recalcEst('${year}')"></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Total Est. Payments (auto)</label>
+          <div class="quarter-total" id="${year}-est-total">$0.00</div>
+        </div>
+        <div class="field">
+          <label>Payment Notes / Confirmation #s</label>
+          <input type="text" id="${year}-est-notes" placeholder="e.g. Paid via IRS Direct Pay, confirmation 12345">
+        </div>
+      </div>
+    </div>
+
+    <!-- CACFP -->
+    <div class="card">
+      <div class="section-label">CACFP Food Program</div>
+      <label class="cacfp-toggle" for="${year}-cacfp">
+        <input type="checkbox" id="${year}-cacfp" onchange="toggleCACFP('${year}')">
+        <div>
+          <div class="cacfp-toggle-label">Participated in CACFP this year</div>
+          <div class="cacfp-toggle-sub">Child & Adult Care Food Program — federal food reimbursement</div>
+        </div>
+      </label>
+      <div class="cacfp-fields" id="${year}-cacfp-fields">
+        <div class="note-box">CACFP reimbursements are taxable income. Food costs are a direct deduction. We need both.</div>
+        <div class="form-row">
+          <div class="field">
+            <label>Total CACFP Reimbursements Received</label>
+            <div class="money-field"><input type="number" id="${year}-cacfp-income" placeholder="0.00"></div>
+          </div>
+          <div class="field">
+            <label>Food Costs Paid Out of Pocket</label>
+            <div class="money-field"><input type="number" id="${year}-cacfp-food" placeholder="0.00"></div>
+          </div>
+        </div>
+        <div class="form-row single">
+          <div class="field">
+            <label>CACFP Sponsor / Provider Name</label>
+            <input type="text" id="${year}-cacfp-sponsor" placeholder="Organization that administers your CACFP">
+          </div>
+        </div>
+      </div>
+      <div id="${year}-no-cacfp">
+        <div class="form-row">
+          <div class="field">
+            <label>Food Costs Paid (non-CACFP)</label>
+            <div class="money-field"><input type="number" id="${year}-food-costs" placeholder="0.00"></div>
+          </div>
+          <div class="field">
+            <label>Meals Served Per Day (avg)</label>
+            <input type="number" id="${year}-meals-day" placeholder="e.g. 3">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIRECT EXPENSES -->
+    <div class="card">
+      <div class="section-label">Business Expenses</div>
+      <p style="font-size:0.83rem;color:var(--muted);margin-bottom:0.85rem;">Check what applies. Estimates are okay — flag them. Use the 🧮 button to total receipts for any category.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.85rem;">
+        ${expenseCategories.map(cat => `
+          <div style="display:flex;flex-direction:column;gap:0.3rem;">
+            <label style="font-size:0.78rem;display:flex;align-items:center;gap:0.4rem;">
+              <input type="checkbox" id="${year}-chk-${cat.id}" style="accent-color:var(--accent);width:14px;height:14px;">
+              ${cat.label}
+            </label>
+            <div style="display:flex;gap:0.35rem;align-items:center;">
+              <div class="money-field" style="flex:1;">
+                <input type="number" id="${year}-exp-${cat.id}" placeholder="0.00">
+              </div>
+              <button type="button" title="Open receipt calculator"
+                style="background:var(--warm);border:1.5px solid var(--border);border-radius:6px;padding:0.4rem 0.5rem;cursor:pointer;font-size:0.85rem;line-height:1;flex-shrink:0;transition:all 0.2s;"
+                onmouseover="this.style.borderColor='var(--accent)'"
+                onmouseout="this.style.borderColor='var(--border)'"
+                onclick="openCalc('${year}','${cat.id}','${cat.label}')">🧮</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <hr style="border:none;border-top:1px dashed var(--border);margin:1rem 0;">
+      <div class="field">
+        <label>Other Expenses Not Listed Above</label>
+        <textarea id="${year}-other-expenses" placeholder="Describe and include amounts — e.g. Office supplies $45, gift for family $30..."></textarea>
+      </div>
+    </div>
+
+    <!-- DAYCARE HOURS -->
+    <div class="card">
+      <div class="section-label">Daycare Hours & Days Open</div>
+      <div class="form-row three">
+        <div class="field">
+          <label>Regular Hours Open (annual)</label>
+          <input type="number" id="${year}-hours-regular" placeholder="e.g. 2197">
+        </div>
+        <div class="field">
+          <label>Special / Additional Hours</label>
+          <input type="number" id="${year}-hours-special" placeholder="e.g. 120">
+        </div>
+        <div class="field">
+          <label>Total Days Open</label>
+          <input type="number" id="${year}-days-open" placeholder="e.g. 245">
+        </div>
+      </div>
+      <div class="form-row single">
+        <div class="field">
+          <label>Hours Notes</label>
+          <input type="text" id="${year}-hours-notes" placeholder="e.g. Extended care Tuesdays, summer camp weeks, holiday closures...">
+        </div>
+      </div>
+    </div>
+
+    <!-- RECEIPT TOTALER -->
+    <div class="card">
+      <div class="section-label">Receipt Totaler — Misc Expenses</div>
+      <p style="font-size:0.83rem;color:var(--muted);margin-bottom:0.85rem;">Add individual receipts below. Describe each one and enter the amount — it totals automatically.</p>
+      <div class="receipt-totaler" id="${year}-receipt-totaler">
+        <div class="receipt-header">
+          <span>What is this for?</span>
+          <span>Amount</span>
+          <span></span>
+        </div>
+        <div id="yr${year}-receipt-rows">
+          ${[1,2,3].map(i => receiptRow(year, i)).join('')}
+        </div>
+        <div class="receipt-footer">
+          <button class="btn-add-row" onclick="addReceiptRow('${year}')">+ Add Row</button>
+          <div class="receipt-total">Total: <span id="${year}-receipt-total">$0.00</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOME & VEHICLE -->
+    <div class="card">
+      <div class="section-label">Home Expenses (T/S % applied at prep)</div>
+      <div class="form-row">
+        <div class="field">
+          <label>Annual Mortgage Interest</label>
+          <div class="money-field"><input type="number" id="${year}-mortgage" placeholder="0.00"></div>
+        </div>
+        <div class="field">
+          <label>Real Estate Taxes</label>
+          <div class="money-field"><input type="number" id="${year}-re-taxes" placeholder="0.00"></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Homeowners Insurance</label>
+          <div class="money-field"><input type="number" id="${year}-home-ins" placeholder="0.00"></div>
+        </div>
+        <div class="field">
+          <label>Total Utilities</label>
+          <div class="money-field"><input type="number" id="${year}-utilities" placeholder="0.00"></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Home Repairs / Maintenance</label>
+          <div class="money-field"><input type="number" id="${year}-repairs" placeholder="0.00"></div>
+        </div>
+        <div class="field">
+          <label>What were repairs for?</label>
+          <input type="text" id="${year}-repairs-notes" placeholder="e.g. New flooring in playroom, roof repair">
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="section-label">Vehicle</div>
+      <div class="form-row">
+        <div class="field">
+          <label>Business Miles Driven</label>
+          <input type="number" id="${year}-miles" placeholder="Field trips, supply runs, etc.">
+        </div>
+        <div class="field">
+          <label>Mileage Tracking Method</label>
+          <select id="${year}-mileage-method">
+            <option value="">Select...</option>
+            <option>Mileage log — have it</option>
+            <option>Mileage log — reconstructed</option>
+            <option>Estimate</option>
+            <option>No vehicle use</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row single">
+        <div class="field">
+          <label>Mileage Notes</label>
+          <input type="text" id="${year}-miles-notes" placeholder="e.g. Field trips to library, supply runs to Target, approx 2x/month">
+        </div>
+      </div>
+    </div>
+
+    <!-- MISC / OTHER -->
+    <div class="card">
+      <div class="section-label">Miscellaneous & Other</div>
+      <div class="form-row">
+        <div class="field">
+          <label>Other Deductible Expense</label>
+          <div class="money-field"><input type="number" id="${year}-misc1-amt" placeholder="0.00"></div>
+        </div>
+        <div class="field">
+          <label>What is this for?</label>
+          <input type="text" id="${year}-misc1-desc" placeholder="Describe the expense">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Other Deductible Expense</label>
+          <div class="money-field"><input type="number" id="${year}-misc2-amt" placeholder="0.00"></div>
+        </div>
+        <div class="field">
+          <label>What is this for?</label>
+          <input type="text" id="${year}-misc2-desc" placeholder="Describe the expense">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Other Deductible Expense</label>
+          <div class="money-field"><input type="number" id="${year}-misc3-amt" placeholder="0.00"></div>
+        </div>
+        <div class="field">
+          <label>What is this for?</label>
+          <input type="text" id="${year}-misc3-desc" placeholder="Describe the expense">
+        </div>
+      </div>
+    </div>
+
+    <!-- DOCUMENTS -->
+    <div class="card">
+      <div class="section-label">Documents in Hand for ${year}</div>
+      <div class="checkbox-group">
+        ${['Prior year tax return','Bank statements (all 12 months)','Income records / parent receipts','Expense receipts','1099s received','W-2s (other income)','Mortgage statement (Form 1098)','Insurance statements','CACFP year-end statement','Mileage log','Estimated payment confirmations'].map((doc,i) => `
+          <label class="checkbox-item">
+            <input type="checkbox" id="${year}-doc-${i}">
+            ${doc}
+          </label>
+        `).join('')}
+      </div>
+      <hr class="divider">
+      <div class="form-row single">
+        <div class="field">
+          <label>Notes / Flags / Client Homework for ${year}</label>
+          <textarea id="${year}-notes" placeholder="Missing documents, unusual items, questions to resolve, what client still needs to bring..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="submit-area">
+      <button class="btn-secondary" onclick="showSection('${prevTarget}')">← Back</button>
+      <button class="btn-primary" onclick="showSection('${nextTarget}')">${nextLabel}</button>
+    </div>
+  `;
+
+  // init CACFP
+  document.getElementById(`${year}-no-cacfp`).style.display = 'block';
+  // init receipt listeners
+  initReceiptListeners(year);
+});
+
+function receiptRow(year, idx) {
+  return `
+    <div class="receipt-row" id="${year}-rrow-${idx}">
+      <input type="text" placeholder="Description of expense">
+      <div class="money-input">
+        <input type="number" placeholder="0.00" oninput="calcReceiptTotal('${year}')">
+      </div>
+      <button class="btn-remove-row" onclick="removeReceiptRow('${year}', ${idx})" title="Remove">✕</button>
+    </div>
+  `;
+}
+
+let receiptCounters = {};
+years.forEach(y => receiptCounters[y] = 3);
+
+function initReceiptListeners(year) {
+  // already wired via oninput inline
+}
+
+function addReceiptRow(year) {
+  receiptCounters[year]++;
+  const idx = receiptCounters[year];
+  const container = document.getElementById(`yr${year}-receipt-rows`);
+  const div = document.createElement('div');
+  div.innerHTML = receiptRow(year, idx);
+  container.appendChild(div.firstElementChild);
+}
+
+function removeReceiptRow(year, idx) {
+  const row = document.getElementById(`${year}-rrow-${idx}`);
+  if (row) row.remove();
+  calcReceiptTotal(year);
+}
+
+function calcReceiptTotal(year) {
+  const rows = document.querySelectorAll(`[id="yr${year}-receipt-rows"] .receipt-row`);
+  let total = 0;
+  rows.forEach(row => {
+    const amt = parseFloat(row.querySelector('input[type="number"]')?.value || 0);
+    if (!isNaN(amt)) total += amt;
+  });
+  const el = document.getElementById(`${year}-receipt-total`);
+  if (el) el.textContent = '$' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function recalc(year) {
+  const income = parseFloat(document.getElementById(`${year}-income-total`)?.value || 0);
+  const subsidy = parseFloat(document.getElementById(`${year}-subsidy`)?.value || 0);
+  const other = parseFloat(document.getElementById(`${year}-other-income`)?.value || 0);
+  const total = income + subsidy + other;
+  const el = document.getElementById(`${year}-total-income`);
+  if (el) el.textContent = '$' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function recalcEst(year) {
+  const q1 = parseFloat(document.getElementById(`${year}-est-q1`)?.value || 0);
+  const q2 = parseFloat(document.getElementById(`${year}-est-q2`)?.value || 0);
+  const q3 = parseFloat(document.getElementById(`${year}-est-q3`)?.value || 0);
+  const q4 = parseFloat(document.getElementById(`${year}-est-q4`)?.value || 0);
+  const total = q1+q2+q3+q4;
+  const el = document.getElementById(`${year}-est-total`);
+  if (el) el.textContent = '$' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function toggleCACFP(year) {
+  const checked = document.getElementById(`${year}-cacfp`).checked;
+  document.getElementById(`${year}-cacfp-fields`).classList.toggle('visible', checked);
+  document.getElementById(`${year}-no-cacfp`).style.display = checked ? 'none' : 'block';
+}
+
+function showSection(id) {
+  document.querySelectorAll('.year-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.year-tab').forEach(t => t.classList.remove('active'));
+  const target = document.getElementById(`section-${id}`);
+  if (target) target.classList.add('active');
+  const order = ['info','2022','2023','2024','2025','summary'];
+  const idx = order.indexOf(id);
+  const tabs = document.querySelectorAll('.year-tab');
+  if (tabs[idx]) tabs[idx].classList.add('active');
+  if (id === 'summary') buildSummary();
+  window.scrollTo(0,0);
+}
+
+function buildSummary() {
+  const grid = document.getElementById('summary-grid');
+  grid.innerHTML = years.map(year => {
+    const income = document.getElementById(`${year}-income-total`)?.value;
+    const children = document.getElementById(`${year}-children`)?.value;
+    const cacfp = document.getElementById(`${year}-cacfp`)?.checked ? 'Yes' : 'No';
+    const est = document.getElementById(`${year}-est-total`)?.textContent || '$0.00';
+    const receipts = document.getElementById(`${year}-receipt-total`)?.textContent || '$0.00';
+    return `
+      <div class="summary-card">
+        <h4>${year}</h4>
+        <p>
+          <strong>Gross Income:</strong> ${income ? '$'+Number(income).toLocaleString() : '—'}<br>
+          <strong>Children:</strong> ${children || '—'}<br>
+          <strong>CACFP:</strong> ${cacfp}<br>
+          <strong>Est. Tax Paid:</strong> ${est}<br>
+          <strong>Misc Receipts:</strong> ${receipts}
+        </p>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── SAVE / LOAD ──
+function collectAllData() {
+  const data = { client: {}, years: {}, summary_notes: '' };
+
+  // client info
+  ['name','ssn','filing-status','phone','address','email','biz-name','license',
+   'start-year','ein','home-sqft','daycare-sqft','hours-week','ts-pct','weeks-year','notes'].forEach(f => {
+    const el = document.getElementById(`client-${f}`);
+    if (el) data.client[f] = el.value;
+  });
+
+  // years
+  years.forEach(year => {
+    data.years[year] = {};
+    document.querySelectorAll(`[id^="${year}-"]`).forEach(el => {
+      const key = el.id.replace(`${year}-`, '');
+      if (el.type === 'checkbox') data.years[year][key] = el.checked;
+      else if (el.tagName !== 'DIV' && el.tagName !== 'BUTTON') data.years[year][key] = el.value;
+    });
+    // receipt rows
+    const rows = [];
+    document.querySelectorAll(`[id="yr${year}-receipt-rows"] .receipt-row`).forEach(row => {
+      const desc = row.querySelector('input[type="text"]')?.value || '';
+      const amt = row.querySelector('input[type="number"]')?.value || '';
+      rows.push({ desc, amt });
+    });
+    data.years[year]['_receipt_rows'] = rows;
+  });
+
+  const sn = document.getElementById('summary-notes');
+  if (sn) data.summary_notes = sn.value;
+
+  // Include all saved receipt line items
+  data.calc_receipts = calcReceipts;
+
+  return data;
+}
+
+async function saveAll() {
+  if (!currentUser) return;
+  const btn = document.getElementById('final-submit-btn') || document.querySelector('.btn-save');
+  const saveBtn = document.querySelector('.btn-save');
+  if (saveBtn) { saveBtn.textContent = 'Saving...'; saveBtn.style.opacity = '0.6'; }
+
+  const payload = {
+    user_id: currentUser.id,
+    client_name: document.getElementById('client-name')?.value || '',
+    submitted_at: new Date().toISOString(),
+    raw_form_data: collectAllData(),
+    years_data: {},
+    status: 'in_review'
+  };
+
+  years.forEach(year => {
+    payload.years_data[year] = {
+      income_total: document.getElementById(`${year}-income-total`)?.value || null,
+      children: document.getElementById(`${year}-children`)?.value || null,
+      cacfp: document.getElementById(`${year}-cacfp`)?.checked || false,
+      est_payments_total: ['q1','q2','q3','q4'].reduce((s,q) => s + (parseFloat(document.getElementById(`${year}-est-${q}`)?.value)||0), 0)
+    };
+  });
+
+  try {
+    // upsert based on user_id — one record per user (their working file)
+    const { error } = await sb.from('tax_organizer_submissions').upsert(payload, { onConflict: 'user_id' });
+    if (error) throw error;
+    setSaveStatus('Saved ✓ ' + new Date().toLocaleTimeString());
+    showToast('Saved to Keepstead ✓', false);
+  } catch(e) {
+    showToast('Save failed: ' + e.message, true);
+  } finally {
+    if (saveBtn) { saveBtn.textContent = '💾 Save All'; saveBtn.disabled = false; saveBtn.style.opacity = '1'; saveBtn.style.background = 'var(--sage)'; }
+  }
+}
+
+async function loadSavedData() {
+  if (!currentUser) return;
+  setSaveStatus('Loading...');
+  try {
+    const { data, error } = await sb.from('tax_organizer_submissions')
+      .select('*').eq('user_id', currentUser.id).maybeSingle();
+    if (error || !data) { setSaveStatus('No saved data — fill in and save.'); return; }
+
+    const saved = data.raw_form_data;
+    if (!saved) return;
+
+    // restore client
+    if (saved.client) {
+      Object.entries(saved.client).forEach(([k,v]) => {
+        const el = document.getElementById(`client-${k}`);
+        if (el) el.value = v;
+      });
+    }
+
+    // restore years
+    if (saved.years) {
+      Object.entries(saved.years).forEach(([year, vals]) => {
+        Object.entries(vals).forEach(([k,v]) => {
+          if (k === '_receipt_rows') {
+            // restore receipt rows
+            const container = document.getElementById(`yr${year}-receipt-rows`);
+            if (container && Array.isArray(v) && v.length > 0) {
+              container.innerHTML = '';
+              v.forEach((row, i) => {
+                receiptCounters[year] = i + 1;
+                const div = document.createElement('div');
+                div.innerHTML = receiptRow(year, i+1);
+                const el = div.firstElementChild;
+                el.querySelector('input[type="text"]').value = row.desc || '';
+                el.querySelector('input[type="number"]').value = row.amt || '';
+                container.appendChild(el);
+              });
+              calcReceiptTotal(year);
+            }
+            return;
+          }
+          const el = document.getElementById(`${year}-${k}`);
+          if (!el) return;
+          if (el.type === 'checkbox') el.checked = v;
+          else el.value = v;
+        });
+        // re-run calcs
+        recalc(year);
+        recalcEst(year);
+        const cacfp = document.getElementById(`${year}-cacfp`);
+        if (cacfp) toggleCACFP(year);
+      });
+    }
+
+    if (saved.summary_notes) {
+      const sn = document.getElementById('summary-notes');
+      if (sn) sn.value = saved.summary_notes;
+    }
+
+    // Restore calc receipts into memory so calc modal shows prior lines
+    if (saved.calc_receipts) {
+      Object.assign(calcReceipts, saved.calc_receipts);
+    }
+
+    setSaveStatus('Data loaded ✓');
+    const saveBtn = document.querySelector('.btn-save');
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾 Save All'; saveBtn.style.background = 'var(--sage)'; }
+  } catch(e) {
+    setSaveStatus('Could not load saved data.');
+  }
+}
+
+function setSaveStatus(msg) {
+  const el = document.getElementById('save-status');
+  if (el) el.textContent = msg;
+}
+
+function showToast(msg, isError = false) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  t.style.background = isError ? 'var(--accent)' : 'var(--sage)';
+  t.style.color = 'white';
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+// ── RECEIPT CALC MODAL ──
+let calcTargetYear = null;
+let calcTargetId = null;
+
+// Storage for all receipt line items: { year: { catId: [{desc, amt}] } }
+const calcReceipts = {};
+
+function openCalc(year, id, label) {
+  calcTargetYear = year;
+  calcTargetId = id;
+  document.getElementById('calc-title').textContent = label + ' — Receipt Calculator';
+  document.getElementById('calc-sub').textContent = 'Add each receipt. Hit "Use This Total" to save and populate the field.';
+
+  // Restore previously saved lines if they exist
+  const saved = calcReceipts[year]?.[id] || [];
+  const container = document.getElementById('calc-lines');
+  container.innerHTML = '';
+  const rows = saved.length > 0 ? saved : [{ desc: '', amt: '' }];
+  rows.forEach(row => {
+    const div = document.createElement('div');
+    div.className = 'calc-line';
+    div.innerHTML = `
+      <input type="text" placeholder="What was this for?" value="${row.desc || ''}">
+      <div class="calc-money"><input type="number" placeholder="0.00" value="${row.amt || ''}" oninput="updateCalcTotal()"></div>
+      <button type="button" onclick="removeCalcLine(this)" style="background:transparent;border:none;color:var(--border);cursor:pointer;font-size:1rem;">✕</button>`;
+    container.appendChild(div);
+  });
+
+  updateCalcTotal();
+  document.getElementById('calc-overlay').classList.add('open');
+}
+
+function closeCalc() {
+  document.getElementById('calc-overlay').classList.remove('open');
+  calcTargetYear = null;
+  calcTargetId = null;
+}
+
+function addCalcLine() {
+  const div = document.createElement('div');
+  div.className = 'calc-line';
+  div.innerHTML = `
+    <input type="text" placeholder="What was this for?">
+    <div class="calc-money"><input type="number" placeholder="0.00" oninput="updateCalcTotal()"></div>
+    <button type="button" onclick="removeCalcLine(this)" style="background:transparent;border:none;color:var(--border);cursor:pointer;font-size:1rem;">✕</button>`;
+  document.getElementById('calc-lines').appendChild(div);
+}
+
+function removeCalcLine(btn) {
+  btn.closest('.calc-line').remove();
+  updateCalcTotal();
+}
+
+function updateCalcTotal() {
+  const inputs = document.querySelectorAll('#calc-lines input[type="number"]');
+  let total = 0;
+  inputs.forEach(inp => { const v = parseFloat(inp.value); if (!isNaN(v)) total += v; });
+  document.getElementById('calc-running-total').textContent = '$' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function saveCalcLines() {
+  // Persist the current calc lines to memory
+  if (!calcTargetYear || !calcTargetId) return;
+  if (!calcReceipts[calcTargetYear]) calcReceipts[calcTargetYear] = {};
+  const lines = [];
+  document.querySelectorAll('#calc-lines .calc-line').forEach(row => {
+    const desc = row.querySelector('input[type="text"]')?.value || '';
+    const amt = row.querySelector('input[type="number"]')?.value || '';
+    if (desc || amt) lines.push({ desc, amt });
+  });
+  calcReceipts[calcTargetYear][calcTargetId] = lines;
+}
+
+function useCalcTotal() {
+  if (!calcTargetYear || !calcTargetId) return;
+  saveCalcLines();
+  const inputs = document.querySelectorAll('#calc-lines input[type="number"]');
+  let total = 0;
+  inputs.forEach(inp => { const v = parseFloat(inp.value); if (!isNaN(v)) total += v; });
+  const field = document.getElementById(calcTargetYear + '-exp-' + calcTargetId);
+  if (field) field.value = total.toFixed(2);
+  closeCalc();
+  showToast('Total $' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' saved ✓', false);
+}
+
+</script>
+
+<!-- ── RECEIPT CALC MODAL ── -->
+<div class="calc-overlay" id="calc-overlay" onclick="if(event.target===this)closeCalc()">
+  <div class="calc-modal">
+    <h3 id="calc-title">Receipt Calculator</h3>
+    <div class="calc-sub" id="calc-sub">Add each receipt. Total drops into the field automatically.</div>
+    <div id="calc-lines">
+      <div class="calc-line">
+        <input type="text" placeholder="What was this for?">
+        <div class="calc-money"><input type="number" placeholder="0.00" oninput="updateCalcTotal()"></div>
+        <button type="button" onclick="removeCalcLine(this)" style="background:transparent;border:none;color:var(--border);cursor:pointer;font-size:1rem;">✕</button>
+      </div>
+    </div>
+    <button class="btn-add-calc-row" onclick="addCalcLine()">+ Add Receipt</button>
+    <div class="calc-total-bar">
+      <div>Total</div>
+      <span id="calc-running-total">$0.00</span>
+    </div>
+    <div class="calc-actions">
+      <button class="btn-close-calc" onclick="closeCalc()">Cancel</button>
+      <button class="btn-use-total" onclick="useCalcTotal()">Use This Total ✓</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
