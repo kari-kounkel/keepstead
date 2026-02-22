@@ -377,106 +377,6 @@
     line-height: 1.5;
   }
 
-  /* ── RECEIPT TOTALER ── */
-  .receipt-totaler {
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-    margin-top: 0.5rem;
-  }
-
-  .receipt-header {
-    background: var(--warm);
-    padding: 0.6rem 0.85rem;
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--muted);
-    display: grid;
-    grid-template-columns: 1fr 120px 32px;
-    gap: 0.5rem;
-  }
-
-  .receipt-row {
-    display: grid;
-    grid-template-columns: 1fr 120px 32px;
-    gap: 0.5rem;
-    padding: 0.4rem 0.6rem;
-    border-top: 1px solid var(--border);
-    align-items: center;
-  }
-
-  .receipt-row input {
-    font-size: 0.85rem;
-    padding: 0.35rem 0.6rem;
-    margin: 0;
-  }
-
-  .receipt-row .money-input {
-    position: relative;
-  }
-
-  .receipt-row .money-input::before {
-    content: '$';
-    position: absolute;
-    left: 0.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--muted);
-    font-size: 0.8rem;
-    pointer-events: none;
-  }
-
-  .receipt-row .money-input input {
-    padding-left: 1.2rem;
-  }
-
-  .btn-remove-row {
-    background: transparent;
-    border: none;
-    color: var(--border);
-    font-size: 1rem;
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-    transition: color 0.2s;
-  }
-
-  .btn-remove-row:hover { color: var(--accent); }
-
-  .receipt-footer {
-    background: var(--warm);
-    padding: 0.6rem 0.85rem;
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .btn-add-row {
-    background: transparent;
-    border: 1.5px solid var(--border);
-    color: var(--muted);
-    padding: 0.3rem 0.75rem;
-    border-radius: 1rem;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.78rem;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .btn-add-row:hover { border-color: var(--sage); color: var(--sage); }
-
-  .receipt-total {
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: var(--ink);
-  }
-
-  .receipt-total span {
-    color: var(--sage);
-    font-size: 1rem;
-  }
-
   /* ── CACFP ── */
   .cacfp-toggle {
     display: flex;
@@ -792,7 +692,6 @@
     .field { page-break-inside: avoid; margin-bottom: 0.4rem; }
     .money-field::before { display: none; }
     body { font-size: 10pt; }
-    .receipt-row input { border-bottom: 1px solid #ccc !important; }
   }
 
   @media (max-width: 600px) {
@@ -800,7 +699,6 @@
     .quarter-grid { grid-template-columns: 1fr 1fr; }
     .checkbox-group { grid-template-columns: 1fr; }
     .summary-grid { grid-template-columns: 1fr; }
-    .receipt-header, .receipt-row { grid-template-columns: 1fr 100px 28px; }
   }
 </style>
 </head>
@@ -1077,18 +975,31 @@ sb.auth.onAuthStateChange((event, session) => {
 
 // ── BUILD YEAR SECTIONS ──
 const expenseCategories = [
+  { id: 'food', label: 'Food & Snacks' },
   { id: 'supplies', label: 'Supplies & Art Materials' },
-  { id: 'food', label: 'Food & Snacks (non-CACFP)' },
   { id: 'toys', label: 'Toys & Educational Materials' },
+  { id: 'household', label: 'Household Expenses' },
   { id: 'furniture', label: 'Furniture & Equipment' },
   { id: 'cleaning', label: 'Cleaning Supplies' },
+  { id: 'office100', label: 'Office Supplies (100% Business)' },
+  { id: 'officeshared', label: 'Shared Office Expenses (T/S %)' },
   { id: 'insurance', label: 'Liability Insurance' },
   { id: 'advertising', label: 'Advertising / Website' },
   { id: 'training', label: 'Training & Licensing' },
-  { id: 'utilities', label: 'Utilities (T/S % applied)' },
+  { id: 'gaselectric', label: 'Gas & Electric' },
+  { id: 'watertrash', label: 'Water / Trash' },
+  { id: 'internet', label: 'Internet' },
+  { id: 'phone', label: 'Phone' },
   { id: 'mortgage', label: 'Mortgage Interest / Rent' },
   { id: 'repairs', label: 'Home Repairs / Maintenance' },
-  { id: 'phone', label: 'Phone / Internet' },
+  { id: 'improvements', label: 'Home Improvements / Capital' },
+  { id: 'taxprep', label: 'Tax Preparation Fees' },
+  { id: 'bizloan', label: 'Business Loan Payments' },
+  { id: 'duessubs', label: 'Dues & Subscriptions' },
+  { id: 'contributions', label: 'Contributions / Donations' },
+  { id: 'gifts', label: 'Gifts (Business)' },
+  { id: 'taxespaid', label: 'Taxes Paid (Prior Year / State / Federal)' },
+  { id: 'other', label: 'Other Expenses' },
 ];
 
 years.forEach(year => {
@@ -1200,18 +1111,12 @@ years.forEach(year => {
         </div>
       </label>
       <div class="cacfp-fields" id="${year}-cacfp-fields">
-        <div class="note-box">CACFP reimbursements are taxable income. Food costs are a direct deduction. We need both.</div>
+        <div class="note-box">CACFP reimbursements are taxable income. Food costs beyond CACFP go in the Food & Snacks expense line below.</div>
         <div class="form-row">
           <div class="field">
             <label>Total CACFP Reimbursements Received</label>
             <div class="money-field"><input type="number" id="${year}-cacfp-income" placeholder="0.00"></div>
           </div>
-          <div class="field">
-            <label>Food Costs Paid Out of Pocket</label>
-            <div class="money-field"><input type="number" id="${year}-cacfp-food" placeholder="0.00"></div>
-          </div>
-        </div>
-        <div class="form-row single">
           <div class="field">
             <label>CACFP Sponsor / Provider Name</label>
             <input type="text" id="${year}-cacfp-sponsor" placeholder="Organization that administers your CACFP">
@@ -1221,13 +1126,10 @@ years.forEach(year => {
       <div id="${year}-no-cacfp">
         <div class="form-row">
           <div class="field">
-            <label>Food Costs Paid (non-CACFP)</label>
-            <div class="money-field"><input type="number" id="${year}-food-costs" placeholder="0.00"></div>
-          </div>
-          <div class="field">
             <label>Meals Served Per Day (avg)</label>
             <input type="number" id="${year}-meals-day" placeholder="e.g. 3">
           </div>
+          <div class="field"></div>
         </div>
       </div>
     </div>
@@ -1284,26 +1186,6 @@ years.forEach(year => {
         <div class="field">
           <label>Hours Notes</label>
           <input type="text" id="${year}-hours-notes" placeholder="e.g. Extended care Tuesdays, summer camp weeks, holiday closures...">
-        </div>
-      </div>
-    </div>
-
-    <!-- RECEIPT TOTALER -->
-    <div class="card">
-      <div class="section-label">Receipt Totaler — Misc Expenses</div>
-      <p style="font-size:0.83rem;color:var(--muted);margin-bottom:0.85rem;">Add individual receipts below. Describe each one and enter the amount — it totals automatically.</p>
-      <div class="receipt-totaler" id="${year}-receipt-totaler">
-        <div class="receipt-header">
-          <span>What is this for?</span>
-          <span>Amount</span>
-          <span></span>
-        </div>
-        <div id="yr${year}-receipt-rows">
-          ${[1,2,3].map(i => receiptRow(year, i)).join('')}
-        </div>
-        <div class="receipt-footer">
-          <button class="btn-add-row" onclick="addReceiptRow('${year}')">+ Add Row</button>
-          <div class="receipt-total">Total: <span id="${year}-receipt-total">$0.00</span></div>
         </div>
       </div>
     </div>
@@ -1430,54 +1312,7 @@ years.forEach(year => {
 
   // init CACFP
   document.getElementById(`${year}-no-cacfp`).style.display = 'block';
-  // init receipt listeners
-  initReceiptListeners(year);
 });
-
-function receiptRow(year, idx) {
-  return `
-    <div class="receipt-row" id="${year}-rrow-${idx}">
-      <input type="text" placeholder="Description of expense">
-      <div class="money-input">
-        <input type="number" placeholder="0.00" oninput="calcReceiptTotal('${year}')">
-      </div>
-      <button class="btn-remove-row" onclick="removeReceiptRow('${year}', ${idx})" title="Remove">✕</button>
-    </div>
-  `;
-}
-
-let receiptCounters = {};
-years.forEach(y => receiptCounters[y] = 3);
-
-function initReceiptListeners(year) {
-  // already wired via oninput inline
-}
-
-function addReceiptRow(year) {
-  receiptCounters[year]++;
-  const idx = receiptCounters[year];
-  const container = document.getElementById(`yr${year}-receipt-rows`);
-  const div = document.createElement('div');
-  div.innerHTML = receiptRow(year, idx);
-  container.appendChild(div.firstElementChild);
-}
-
-function removeReceiptRow(year, idx) {
-  const row = document.getElementById(`${year}-rrow-${idx}`);
-  if (row) row.remove();
-  calcReceiptTotal(year);
-}
-
-function calcReceiptTotal(year) {
-  const rows = document.querySelectorAll(`[id="yr${year}-receipt-rows"] .receipt-row`);
-  let total = 0;
-  rows.forEach(row => {
-    const amt = parseFloat(row.querySelector('input[type="number"]')?.value || 0);
-    if (!isNaN(amt)) total += amt;
-  });
-  const el = document.getElementById(`${year}-receipt-total`);
-  if (el) el.textContent = '$' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-}
 
 function recalc(year) {
   const income = parseFloat(document.getElementById(`${year}-income-total`)?.value || 0);
@@ -1524,7 +1359,12 @@ function buildSummary() {
     const children = document.getElementById(`${year}-children`)?.value;
     const cacfp = document.getElementById(`${year}-cacfp`)?.checked ? 'Yes' : 'No';
     const est = document.getElementById(`${year}-est-total`)?.textContent || '$0.00';
-    const receipts = document.getElementById(`${year}-receipt-total`)?.textContent || '$0.00';
+    // Sum checked expense fields
+    let expTotal = 0;
+    expenseCategories.forEach(cat => {
+      const v = parseFloat(document.getElementById(`${year}-exp-${cat.id}`)?.value);
+      if (!isNaN(v)) expTotal += v;
+    });
     return `
       <div class="summary-card">
         <h4>${year}</h4>
@@ -1533,7 +1373,7 @@ function buildSummary() {
           <strong>Children:</strong> ${children || '—'}<br>
           <strong>CACFP:</strong> ${cacfp}<br>
           <strong>Est. Tax Paid:</strong> ${est}<br>
-          <strong>Misc Receipts:</strong> ${receipts}
+          <strong>Total Expenses:</strong> $${expTotal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
         </p>
       </div>
     `;
@@ -1559,14 +1399,6 @@ function collectAllData() {
       if (el.type === 'checkbox') data.years[year][key] = el.checked;
       else if (el.tagName !== 'DIV' && el.tagName !== 'BUTTON') data.years[year][key] = el.value;
     });
-    // receipt rows
-    const rows = [];
-    document.querySelectorAll(`[id="yr${year}-receipt-rows"] .receipt-row`).forEach(row => {
-      const desc = row.querySelector('input[type="text"]')?.value || '';
-      const amt = row.querySelector('input[type="number"]')?.value || '';
-      rows.push({ desc, amt });
-    });
-    data.years[year]['_receipt_rows'] = rows;
   });
 
   const sn = document.getElementById('summary-notes');
@@ -1638,24 +1470,7 @@ async function loadSavedData() {
     if (saved.years) {
       Object.entries(saved.years).forEach(([year, vals]) => {
         Object.entries(vals).forEach(([k,v]) => {
-          if (k === '_receipt_rows') {
-            // restore receipt rows
-            const container = document.getElementById(`yr${year}-receipt-rows`);
-            if (container && Array.isArray(v) && v.length > 0) {
-              container.innerHTML = '';
-              v.forEach((row, i) => {
-                receiptCounters[year] = i + 1;
-                const div = document.createElement('div');
-                div.innerHTML = receiptRow(year, i+1);
-                const el = div.firstElementChild;
-                el.querySelector('input[type="text"]').value = row.desc || '';
-                el.querySelector('input[type="number"]').value = row.amt || '';
-                container.appendChild(el);
-              });
-              calcReceiptTotal(year);
-            }
-            return;
-          }
+          if (k === '_receipt_rows') return; // legacy, skip
           const el = document.getElementById(`${year}-${k}`);
           if (!el) return;
           if (el.type === 'checkbox') el.checked = v;
