@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tax Organizer | Keepstead</title>
+<title>Tax Organizer | Keepstead™</title>
+<meta name="author" content="CARES Consulting, Inc. & Kari Hoglund Kounkel">
+<meta name="copyright" content="© 2025–2026 CARES Consulting, Inc. All rights reserved.">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
 
@@ -665,21 +667,135 @@
   .btn-add-calc-row:hover { border-color: var(--sage); color: var(--sage); }
 
   @media print {
+    /* Hide interactive elements */
     .auth-screen, .years-nav, .save-bar, .submit-area, .btn-save,
-    .btn-add-row, .btn-remove-row, .btn-logout, .header-right { display: none !important; }
+    .btn-add-row, .btn-remove-row, .btn-logout, .header-right,
+    .btn-add-calc-row, .calc-overlay, .btn-close-calc,
+    button, .toast { display: none !important; }
 
+    /* Reset page */
+    body {
+      font-size: 10pt;
+      background: white !important;
+      color: #1a1a2e !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    @page {
+      margin: 0.6in 0.75in;
+      size: letter;
+    }
+
+    /* Show all sections */
     .app { display: block !important; }
     .year-section { display: block !important; page-break-after: always; }
-    .year-banner { background: #1a1a2e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .container { max-width: 100% !important; padding: 0 !important; }
+
+    /* Branded header */
+    .header {
+      background: #1a1a2e !important;
+      color: #faf7f2 !important;
+      padding: 0.6in 0.5in !important;
+      text-align: center !important;
+      display: block !important;
+      border-bottom: 3px solid #c84b31 !important;
+      margin: -0.6in -0.75in 0.3in -0.75in !important;
+      width: calc(100% + 1.5in) !important;
+    }
+
+    .header-left {
+      text-align: center !important;
+    }
+
+    .header-left h1 {
+      font-size: 22pt !important;
+      letter-spacing: 0.5pt !important;
+    }
+
+    .header-left h1::after {
+      content: '™';
+      font-size: 10pt;
+      vertical-align: super;
+    }
+
+    .header-left p {
+      color: #a89e94 !important;
+      font-size: 9pt !important;
+      margin-top: 2pt !important;
+    }
+
+    /* Year banners */
+    .year-banner {
+      background: #1a1a2e !important;
+      color: white !important;
+      padding: 10pt 14pt !important;
+      border-radius: 0 !important;
+      margin: 16pt 0 10pt !important;
+      border-left: 4pt solid #c84b31 !important;
+    }
+
+    .year-banner h2 {
+      font-size: 14pt !important;
+      color: white !important;
+    }
+
+    /* Section labels */
+    .section-label {
+      font-size: 10pt !important;
+      font-weight: 700 !important;
+      color: #c84b31 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 1pt !important;
+      border-bottom: 1pt solid #d9cfc4 !important;
+      padding-bottom: 4pt !important;
+      margin-bottom: 8pt !important;
+    }
+
+    /* Cards */
+    .card {
+      page-break-inside: avoid;
+      border: 1pt solid #e0d8cf !important;
+      border-radius: 4pt !important;
+      padding: 12pt !important;
+      margin-bottom: 10pt !important;
+      box-shadow: none !important;
+      background: white !important;
+    }
+
+    /* Fields */
+    .field { page-break-inside: avoid; margin-bottom: 4pt; }
+
+    .field label {
+      font-size: 7.5pt !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.3pt !important;
+      color: #7a6f65 !important;
+      font-weight: 600 !important;
+    }
 
     input, select, textarea {
       border: none !important;
+      border-bottom: 0.5pt solid #d9cfc4 !important;
       background: transparent !important;
       height: auto !important;
       overflow: visible !important;
       white-space: pre-wrap !important;
       word-break: break-word !important;
       -webkit-appearance: none;
+      font-size: 10pt !important;
+      padding: 2pt 0 !important;
+      color: #1a1a2e !important;
+      font-weight: 500 !important;
+    }
+
+    input[type="checkbox"] {
+      border: none !important;
+      border-bottom: none !important;
+      -webkit-appearance: checkbox !important;
+      appearance: checkbox !important;
+      width: 10pt !important;
+      height: 10pt !important;
     }
 
     textarea {
@@ -688,10 +804,55 @@
       overflow: visible !important;
     }
 
-    .card { page-break-inside: avoid; border: 1px solid #ccc !important; }
-    .field { page-break-inside: avoid; margin-bottom: 0.4rem; }
     .money-field::before { display: none; }
-    body { font-size: 10pt; }
+
+    /* Expense grid — tighter for print */
+    .note-box {
+      font-size: 8pt !important;
+      padding: 6pt !important;
+      background: #f8f6f3 !important;
+      border-left: 2pt solid #d4a843 !important;
+    }
+
+    /* CACFP toggle */
+    .cacfp-toggle {
+      border: none !important;
+      padding: 4pt 0 !important;
+    }
+
+    /* Footer */
+    .footer-note {
+      font-size: 7pt !important;
+      color: #7a6f65 !important;
+      text-align: center !important;
+      border-top: 0.5pt solid #d9cfc4 !important;
+      padding-top: 10pt !important;
+      margin-top: 20pt !important;
+      line-height: 1.6 !important;
+    }
+
+    /* Print-only cover page header */
+    .header::before {
+      content: 'CARES CONSULTING, INC. · TAX SERVICES';
+      display: block;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 7.5pt;
+      letter-spacing: 2pt;
+      color: #d4a843;
+      margin-bottom: 6pt;
+      text-transform: uppercase;
+    }
+
+    .header::after {
+      content: 'CONFIDENTIAL — PREPARED FOR TAX FILING PURPOSES';
+      display: block;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 7pt;
+      letter-spacing: 1.5pt;
+      color: #a89e94;
+      margin-top: 8pt;
+      text-transform: uppercase;
+    }
   }
 
   @media (max-width: 600px) {
@@ -741,10 +902,10 @@
     </div>
     <div class="auth-error" id="auth-error"></div>
     <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid #d9cfc4;font-size:0.7rem;color:#7a6f65;line-height:1.8;text-align:center;">
-      Keepstead™ is the intellectual property of<br>
-      <strong style='color:#1a1a2e;'>CARES Consulting Inc. &amp; Kari Hoglund Kounkel</strong><br>
-      All rights reserved. Unauthorized use or distribution is strictly prohibited.<br>
-      <span style='color:#d4a843;'>© 2025–2026 All Rights Reserved</span>
+      Keepstead™ is the proprietary intellectual property of<br>
+      <strong style='color:#1a1a2e;'>CARES Consulting, Inc. &amp; Kari Hoglund Kounkel</strong><br>
+      © 2025–2026. All rights reserved.<br>
+      Unauthorized use, duplication, hosting, or distribution is strictly prohibited.
     </div>
   </div>
 </div>
@@ -908,7 +1069,7 @@
           <button class="btn-secondary" onclick="window.print()">🖨 Print / Save PDF</button>
           <button class="btn-primary" id="final-submit-btn" onclick="saveAll()">💾 Save to Keepstead</button>
         </div>
-        <p class="footer-note">Keepstead · CARES Consulting Tax Services<br>Information collected for preparation purposes only.</p>
+        <p class="footer-note">Keepstead™ is the proprietary intellectual property of CARES Consulting, Inc. &amp; Kari Hoglund Kounkel.<br>© 2025–2026. All rights reserved. Unauthorized use, duplication, hosting, or distribution is strictly prohibited.<br>Information collected for tax preparation purposes only.</p>
       </div>
     </div>
 
