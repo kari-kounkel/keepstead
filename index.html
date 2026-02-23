@@ -671,11 +671,14 @@
     .auth-screen, .years-nav, .save-bar, .submit-area, .btn-save,
     .btn-add-row, .btn-remove-row, .btn-logout, .header-right,
     .btn-add-calc-row, .calc-overlay, .btn-close-calc,
-    button, .toast { display: none !important; }
+    button, .toast, .note-box { display: none !important; }
+
+    /* Hide elements marked empty by preparePrint() */
+    .print-hide { display: none !important; }
 
     /* Reset page */
     body {
-      font-size: 10pt;
+      font-size: 9pt;
       background: white !important;
       color: #1a1a2e !important;
       -webkit-print-color-adjust: exact;
@@ -683,91 +686,96 @@
     }
 
     @page {
-      margin: 0.6in 0.75in;
+      margin: 0.5in 0.6in;
       size: letter;
     }
 
-    /* Show all sections */
+    /* Show all non-hidden sections */
     .app { display: block !important; }
-    .year-section { display: block !important; page-break-after: always; }
+    .year-section { display: block !important; }
+    .year-section.print-hide { display: none !important; }
     .container { max-width: 100% !important; padding: 0 !important; }
 
-    /* Branded header */
+    /* Branded header — compact */
     .header {
       background: #1a1a2e !important;
       color: #faf7f2 !important;
-      padding: 0.6in 0.5in !important;
+      padding: 0.35in 0.4in !important;
       text-align: center !important;
       display: block !important;
       border-bottom: 3px solid #c84b31 !important;
-      margin: -0.6in -0.75in 0.3in -0.75in !important;
-      width: calc(100% + 1.5in) !important;
+      margin: -0.5in -0.6in 0.2in -0.6in !important;
+      width: calc(100% + 1.2in) !important;
     }
 
-    .header-left {
-      text-align: center !important;
-    }
+    .header-left { text-align: center !important; }
 
     .header-left h1 {
-      font-size: 22pt !important;
+      font-size: 18pt !important;
       letter-spacing: 0.5pt !important;
     }
 
     .header-left h1::after {
       content: '™';
-      font-size: 10pt;
+      font-size: 8pt;
       vertical-align: super;
     }
 
     .header-left p {
       color: #a89e94 !important;
-      font-size: 9pt !important;
+      font-size: 8pt !important;
       margin-top: 2pt !important;
     }
 
-    /* Year banners */
+    /* Year banners — tighter */
     .year-banner {
       background: #1a1a2e !important;
       color: white !important;
-      padding: 10pt 14pt !important;
+      padding: 6pt 10pt !important;
       border-radius: 0 !important;
-      margin: 16pt 0 10pt !important;
-      border-left: 4pt solid #c84b31 !important;
+      margin: 10pt 0 6pt !important;
+      border-left: 3pt solid #c84b31 !important;
     }
 
     .year-banner h2 {
-      font-size: 14pt !important;
+      font-size: 12pt !important;
       color: white !important;
     }
 
-    /* Section labels */
+    /* Section labels — tighter */
     .section-label {
-      font-size: 10pt !important;
+      font-size: 8pt !important;
       font-weight: 700 !important;
       color: #c84b31 !important;
       text-transform: uppercase !important;
-      letter-spacing: 1pt !important;
-      border-bottom: 1pt solid #d9cfc4 !important;
-      padding-bottom: 4pt !important;
-      margin-bottom: 8pt !important;
+      letter-spacing: 0.8pt !important;
+      border-bottom: 0.5pt solid #d9cfc4 !important;
+      padding-bottom: 2pt !important;
+      margin-bottom: 4pt !important;
     }
 
-    /* Cards */
+    /* Cards — minimal spacing */
     .card {
       page-break-inside: avoid;
-      border: 1pt solid #e0d8cf !important;
-      border-radius: 4pt !important;
-      padding: 12pt !important;
-      margin-bottom: 10pt !important;
+      border: none !important;
+      border-bottom: 0.5pt solid #e0d8cf !important;
+      border-radius: 0 !important;
+      padding: 6pt 0 !important;
+      margin-bottom: 4pt !important;
       box-shadow: none !important;
       background: white !important;
     }
 
-    /* Fields */
-    .field { page-break-inside: avoid; margin-bottom: 4pt; }
+    .card:last-of-type { border-radius: 0 !important; }
+
+    /* Form rows — tighter */
+    .form-row { gap: 0.5rem !important; margin-bottom: 2pt !important; }
+
+    /* Fields — compact */
+    .field { page-break-inside: avoid; margin-bottom: 1pt; }
 
     .field label {
-      font-size: 7.5pt !important;
+      font-size: 6.5pt !important;
       text-transform: uppercase !important;
       letter-spacing: 0.3pt !important;
       color: #7a6f65 !important;
@@ -783,10 +791,11 @@
       white-space: pre-wrap !important;
       word-break: break-word !important;
       -webkit-appearance: none;
-      font-size: 10pt !important;
-      padding: 2pt 0 !important;
+      font-size: 9pt !important;
+      padding: 1pt 0 !important;
       color: #1a1a2e !important;
       font-weight: 500 !important;
+      line-height: 1.3 !important;
     }
 
     input[type="checkbox"] {
@@ -794,8 +803,8 @@
       border-bottom: none !important;
       -webkit-appearance: checkbox !important;
       appearance: checkbox !important;
-      width: 10pt !important;
-      height: 10pt !important;
+      width: 8pt !important;
+      height: 8pt !important;
     }
 
     textarea {
@@ -806,29 +815,40 @@
 
     .money-field::before { display: none; }
 
-    /* Expense grid — tighter for print */
-    .note-box {
-      font-size: 8pt !important;
-      padding: 6pt !important;
-      background: #f8f6f3 !important;
-      border-left: 2pt solid #d4a843 !important;
-    }
+    /* Quarter grid — tighter */
+    .quarter-grid { gap: 0.4rem !important; margin-bottom: 4pt !important; }
+    .quarter-label { font-size: 7pt !important; }
+    .quarter-sub { font-size: 6pt !important; }
+    .quarter-total { font-size: 8pt !important; padding: 3pt 6pt !important; }
+
+    /* Checkbox group */
+    .checkbox-group { gap: 1pt !important; }
+    .checkbox-item { font-size: 7.5pt !important; gap: 3pt !important; }
+
+    /* Dividers — less space */
+    .divider { margin: 4pt 0 !important; }
 
     /* CACFP toggle */
     .cacfp-toggle {
       border: none !important;
-      padding: 4pt 0 !important;
+      padding: 2pt 0 !important;
+    }
+
+    /* Expense category grid in print — single column, only checked items shown */
+    .card > div[style*="grid-template-columns"] {
+      grid-template-columns: 1fr 1fr !important;
+      gap: 2pt 8pt !important;
     }
 
     /* Footer */
     .footer-note {
-      font-size: 7pt !important;
+      font-size: 6.5pt !important;
       color: #7a6f65 !important;
       text-align: center !important;
       border-top: 0.5pt solid #d9cfc4 !important;
-      padding-top: 10pt !important;
-      margin-top: 20pt !important;
-      line-height: 1.6 !important;
+      padding-top: 6pt !important;
+      margin-top: 10pt !important;
+      line-height: 1.5 !important;
     }
 
     /* Print-only cover page header */
@@ -836,10 +856,10 @@
       content: 'CARES CONSULTING, INC. · TAX SERVICES';
       display: block;
       font-family: 'DM Sans', sans-serif;
-      font-size: 7.5pt;
+      font-size: 7pt;
       letter-spacing: 2pt;
       color: #d4a843;
-      margin-bottom: 6pt;
+      margin-bottom: 4pt;
       text-transform: uppercase;
     }
 
@@ -847,12 +867,28 @@
       content: 'CONFIDENTIAL — PREPARED FOR TAX FILING PURPOSES';
       display: block;
       font-family: 'DM Sans', sans-serif;
-      font-size: 7pt;
+      font-size: 6.5pt;
       letter-spacing: 1.5pt;
       color: #a89e94;
-      margin-top: 8pt;
+      margin-top: 6pt;
       text-transform: uppercase;
     }
+
+    /* Summary section */
+    .summary-grid { gap: 0.5rem !important; }
+    .summary-card { padding: 6pt !important; }
+    .summary-card h4 { font-size: 10pt !important; margin-bottom: 2pt !important; }
+    .summary-card p { font-size: 7.5pt !important; line-height: 1.4 !important; }
+
+    .client-card {
+      padding: 8pt !important;
+      margin-top: 6pt !important;
+      margin-bottom: 4pt !important;
+      border-radius: 4pt !important;
+    }
+
+    /* Status pill hidden in print */
+    .status-pill { display: none !important; }
   }
 
   @media (max-width: 600px) {
@@ -1066,7 +1102,7 @@
           </div>
         </div>
         <div class="submit-area">
-          <button class="btn-secondary" onclick="window.print()">🖨 Print / Save PDF</button>
+          <button class="btn-secondary" onclick="smartPrint()">🖨 Print / Save PDF</button>
           <button class="btn-primary" id="final-submit-btn" onclick="saveAll()">💾 Save to Keepstead</button>
         </div>
         <p class="footer-note">Keepstead™ is the proprietary intellectual property of CARES Consulting, Inc. &amp; Kari Hoglund Kounkel.<br>© 2025–2026. All rights reserved. Unauthorized use, duplication, hosting, or distribution is strictly prohibited.<br>Information collected for tax preparation purposes only.</p>
@@ -1761,6 +1797,132 @@ function useCalcTotal() {
   if (field) field.value = total.toFixed(2);
   closeCalc();
   showToast('Total $' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' saved ✓', false);
+}
+
+// ── SMART PRINT ──
+function smartPrint() {
+  preparePrint();
+  window.print();
+  // Cleanup after print dialog closes (or cancel)
+  setTimeout(cleanupPrint, 500);
+  window.onafterprint = cleanupPrint;
+}
+
+function preparePrint() {
+  // --- 1. Client Info section: hide empty fields ---
+  const clientSection = document.getElementById('section-info');
+  if (clientSection) {
+    const clientFields = clientSection.querySelectorAll('.field');
+    let clientHasData = false;
+    clientFields.forEach(field => {
+      const input = field.querySelector('input, select, textarea');
+      if (!input) return;
+      const val = input.value?.trim();
+      if (!val || val === 'Select...') {
+        field.classList.add('print-hide');
+      } else {
+        clientHasData = true;
+      }
+    });
+    if (!clientHasData) {
+      clientSection.classList.add('print-hide');
+    }
+  }
+
+  // --- 2. Year sections: hide empty ones entirely ---
+  years.forEach(year => {
+    const section = document.getElementById(`section-${year}`);
+    if (!section) return;
+
+    let yearHasData = false;
+    const allInputs = section.querySelectorAll('input[type="text"], input[type="number"], input[type="email"], select, textarea');
+    allInputs.forEach(inp => {
+      const val = inp.value?.trim();
+      if (val && val !== '' && val !== 'Select...' && val !== '0' && val !== '0.00') {
+        yearHasData = true;
+      }
+    });
+    const allChecks = section.querySelectorAll('input[type="checkbox"]');
+    allChecks.forEach(chk => { if (chk.checked) yearHasData = true; });
+
+    if (!yearHasData) {
+      section.classList.add('print-hide');
+      return;
+    }
+
+    // --- 3. Within populated year, hide empty fields ---
+    section.querySelectorAll('.field').forEach(field => {
+      const input = field.querySelector('input[type="text"], input[type="number"], input[type="email"], select, textarea');
+      if (!input) return;
+      const val = input.value?.trim();
+      if (!val || val === '' || val === 'Select...' || val === '0.00') {
+        field.classList.add('print-hide');
+      }
+    });
+
+    // --- 4. Hide unchecked $0 expense categories ---
+    expenseCategories.forEach(cat => {
+      const chk = document.getElementById(`${year}-chk-${cat.id}`);
+      const amt = document.getElementById(`${year}-exp-${cat.id}`);
+      const amtVal = parseFloat(amt?.value) || 0;
+      const isChecked = chk?.checked;
+      if (!isChecked && amtVal === 0) {
+        const wrapper = chk?.closest('div[style*="flex-direction"]');
+        if (wrapper) wrapper.classList.add('print-hide');
+      }
+    });
+
+    // --- 5. Hide empty cards ---
+    section.querySelectorAll('.card').forEach(card => {
+      const visibleFields = card.querySelectorAll('.field:not(.print-hide)');
+      const visibleCheckboxes = card.querySelectorAll('.checkbox-item input[type="checkbox"]:checked');
+      const autoTotals = card.querySelectorAll('.quarter-total');
+      let hasAutoTotal = false;
+      autoTotals.forEach(t => {
+        if (t.textContent && t.textContent !== '$0.00') hasAutoTotal = true;
+      });
+      const visibleExpenses = card.querySelectorAll('div[style*="flex-direction"]:not(.print-hide)');
+      if (visibleFields.length === 0 && visibleCheckboxes.length === 0 && !hasAutoTotal && visibleExpenses.length === 0) {
+        card.classList.add('print-hide');
+      }
+    });
+
+    // --- 6. Hide CACFP sub-section if not enrolled ---
+    const cacfpChk = document.getElementById(`${year}-cacfp`);
+    if (cacfpChk && !cacfpChk.checked) {
+      const cacfpFields = document.getElementById(`${year}-cacfp-fields`);
+      if (cacfpFields) cacfpFields.classList.add('print-hide');
+    }
+
+    // --- 7. Hide unchecked document checkboxes ---
+    section.querySelectorAll('.checkbox-item').forEach(item => {
+      const chk = item.querySelector('input[type="checkbox"]');
+      if (chk && !chk.checked) item.classList.add('print-hide');
+    });
+
+    // --- 8. Hide empty form-rows ---
+    section.querySelectorAll('.form-row').forEach(row => {
+      const visibleChildren = row.querySelectorAll('.field:not(.print-hide)');
+      if (visibleChildren.length === 0) row.classList.add('print-hide');
+    });
+  });
+
+  // --- 9. Summary: rebuild then hide empty year cards ---
+  buildSummary();
+  const summaryGrid = document.getElementById('summary-grid');
+  if (summaryGrid) {
+    summaryGrid.querySelectorAll('.summary-card').forEach(card => {
+      const text = card.querySelector('p')?.textContent || '';
+      if (!text.match(/\$[1-9]/)) {
+        card.classList.add('print-hide');
+      }
+    });
+  }
+}
+
+function cleanupPrint() {
+  document.querySelectorAll('.print-hide').forEach(el => el.classList.remove('print-hide'));
+  window.onafterprint = null;
 }
 
 </script>
