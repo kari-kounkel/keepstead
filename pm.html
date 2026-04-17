@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Property Management Tax Organizer | Keepstead™</title>
+<meta name="author" content="CARES Consulting, Inc. & Kari Hoglund Kounkel">
+<meta name="copyright" content="© 2025–2026 CARES Consulting, Inc. All rights reserved.">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --cream: #faf7f2;
+    --warm: #f5ede0;
+    --accent: #c84b31;
+    --gold: #d4a843;
+    --sage: #5a7a5e;
+    --border: #d9cfc4;
+    --muted: #7a6f65;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── AUTH SCREEN ── */
+  .auth-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ink);
+    padding: 2rem;
+  }
+
+  .auth-box {
+    background: var(--cream);
+    border-radius: 16px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .auth-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    color: var(--ink);
+    margin-bottom: 0.25rem;
+  }
+
+  .auth-sub {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 2rem;
+  }
+
+  .auth-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .auth-tab {
+    flex: 1;
+    padding: 0.6rem;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+
+  .auth-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  .auth-field { margin-bottom: 1rem; }
+
+  .auth-field label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .auth-field input {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    background: white;
+    color: var(--ink);
+    transition: border-color 0.2s;
+  }
+
+  .auth-field input:focus { outline: none; border-color: var(--accent); }
+
+  .auth-btn {
+    width: 100%;
+    padding: 0.85rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .auth-btn:hover { background: #a63a24; }
+
+  .auth-error {
+    font-size: 0.82rem;
+    color: var(--accent);
+    margin-top: 0.85rem;
+    min-height: 1.2rem;
+  }
+
+  /* ── MAIN APP ── */
+  .app { display: none; }
+
+  .header {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+  }
+
+  .header p {
+    font-size: 0.82rem;
+    color: #a89e94;
+    margin-top: 0.15rem;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .user-pill {
+    font-size: 0.78rem;
+    color: #a89e94;
+    padding: 0.3rem 0.85rem;
+    background: rgba(255,255,255,0.05);
+    border-radius: 1rem;
+  }
+
+  .btn-logout {
+    background: transparent;
+    border: 1.5px solid #4a4558;
+    color: #a89e94;
+    padding: 0.4rem 0.9rem;
+    border-radius: 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-logout:hover { border-color: white; color: white; }
+
+  .years-nav {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1.25rem 1rem;
+    background: var(--warm);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .year-tab {
+    padding: 0.45rem 1.1rem;
+    border: 2px solid var(--border);
+    border-radius: 2rem;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--muted);
+  }
+
+  .year-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  .year-tab:hover:not(.active) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .save-bar {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 0.6rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  .btn-save {
+    background: var(--sage);
+    color: white;
+    border: none;
+    padding: 0.45rem 1.25rem;
+    border-radius: 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-save:hover { background: #486347; }
+  .btn-save:disabled { background: var(--border); cursor: default; }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.5rem 1.5rem 4rem;
+  }
+
+  .year-section { display: none; }
+  .year-section.active { display: block; }
+
+  .year-banner {
+    background: var(--ink);
+    color: var(--cream);
+    border-radius: 12px 12px 0 0;
+    padding: 1.1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.25rem;
+  }
+
+  .year-banner h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+  }
+
+  .status-pill {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.8rem;
+    border-radius: 2rem;
+    background: rgba(255,255,255,0.1);
+    color: var(--gold);
+  }
+
+  .card {
+    background: white;
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 1.5rem;
+  }
+
+  .card:last-of-type {
+    border-radius: 0 0 12px 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  .card + .card { border-top: 1px solid var(--border); }
+
+  .section-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 0.85rem;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+  .form-row.single { grid-template-columns: 1fr; }
+
+  .field { display: flex; flex-direction: column; gap: 0.35rem; }
+
+  label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="date"],
+  select,
+  textarea {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
+    padding: 0.55rem 0.8rem;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    background: var(--cream);
+    color: var(--ink);
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  textarea { resize: vertical; min-height: 72px; }
+
+  .divider {
+    border: none;
+    border-top: 1px dashed var(--border);
+    margin: 1.1rem 0;
+  }
+
+  .note-box {
+    background: #fff9f0;
+    border: 1px solid #f0d9b5;
+    border-left: 4px solid var(--gold);
+    border-radius: 0 8px 8px 0;
+    padding: 0.75rem 1rem;
+    font-size: 0.83rem;
+    color: #6b5c3e;
+    margin-bottom: 0.85rem;
+    line-height: 1.5;
+  }
+
+  /* ── PROPERTY CARDS ── */
+  .property-card {
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem;
+    margin-bottom: 0.9rem;
+    background: var(--cream);
+    position: relative;
+  }
+
+  .property-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
+
+  .property-tag {
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .btn-remove-prop {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0.25rem 0.7rem;
+    border-radius: 1rem;
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-remove-prop:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .btn-add-prop {
+    background: var(--sage);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.3rem;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .btn-add-prop:hover { background: #486347; }
+
+  /* ── WORKTABLE ── */
+  .worktable-wrap {
+    overflow-x: auto;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+  }
+
+  table.worktable {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 900px;
+    font-size: 0.85rem;
+  }
+
+  table.worktable th,
+  table.worktable td {
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.5rem;
+    text-align: right;
+  }
+
+  table.worktable th {
+    background: var(--warm);
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-align: center;
+    letter-spacing: 0.04em;
+  }
+
+  table.worktable th.first,
+  table.worktable td.first {
+    text-align: left;
+    background: var(--cream);
+    font-weight: 500;
+    position: sticky;
+    left: 0;
+    min-width: 180px;
+  }
+
+  table.worktable input {
+    border: none;
+    background: transparent;
+    padding: 0.25rem;
+    text-align: right;
+    font-size: 0.85rem;
+    width: 100%;
+  }
+
+  table.worktable input:focus {
+    background: var(--cream);
+    outline: 1.5px solid var(--accent);
+    border-radius: 3px;
+  }
+
+  table.worktable tr.net-row td {
+    background: var(--warm);
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  table.worktable tr.net-row td.pos { color: var(--sage); }
+  table.worktable tr.net-row td.neg { color: var(--accent); }
+
+  /* ── LIFE EVENTS ── */
+  .life-event-row {
+    display: grid;
+    grid-template-columns: 120px 1fr 140px 1fr 40px;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .life-event-row .btn-remove-event {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0.35rem 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+  }
+
+  .btn-add-event {
+    background: transparent;
+    color: var(--accent);
+    border: 1.5px dashed var(--accent);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-add-event:hover { background: var(--accent); color: white; }
+
+  /* ── SUMMARY ── */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .summary-card {
+    background: var(--warm);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+  }
+
+  .summary-card h4 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.15rem;
+    margin-bottom: 0.4rem;
+    color: var(--ink);
+  }
+
+  .summary-card p {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .report-output {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-top: 1.25rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+
+  .report-output h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem;
+    color: var(--ink);
+    margin: 0.75rem 0 0.4rem;
+  }
+
+  .report-output h4 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.05rem;
+    color: var(--accent);
+    margin: 0.75rem 0 0.3rem;
+  }
+
+  .btn-report {
+    background: var(--gold);
+    color: var(--ink);
+    border: none;
+    padding: 0.6rem 1.3rem;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-right: 0.5rem;
+  }
+
+  .btn-report:hover { background: #b8902f; }
+
+  /* ── INTAKE GATE ── */
+  .intake-gate {
+    background: #fff9f0;
+    border: 1.5px solid var(--gold);
+    border-radius: 10px;
+    padding: 1.1rem 1.3rem;
+    margin-bottom: 1rem;
+    font-size: 0.88rem;
+    color: #6b5c3e;
+  }
+
+  .intake-gate strong { color: var(--ink); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    padding: 0.8rem 1.3rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    z-index: 9999;
+    animation: slideup 0.3s ease-out;
+  }
+
+  @keyframes slideup {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 640px) {
+    .form-row, .form-row.three { grid-template-columns: 1fr; }
+    .life-event-row { grid-template-columns: 1fr; gap: 0.3rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── AUTH ── -->
+<div class="auth-screen" id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">Keepstead</div>
+    <p class="auth-sub">Property Management Tax Organizer</p>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="switchAuthTab('signup')">Create Account</button>
+    </div>
+    <div id="login-form">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="your@email.com">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••">
+      </div>
+      <button class="auth-btn" onclick="handleLogin()">Sign In</button>
+    </div>
+    <div id="signup-form" style="display:none;">
+      <div class="auth-field">
+        <label>Name</label>
+        <input type="text" id="signup-name" placeholder="Your name">
+      </div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="signup-email" placeholder="your@email.com">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="signup-password" placeholder="Min 6 characters">
+      </div>
+      <button class="auth-btn" onclick="handleSignup()">Create Account</button>
+    </div>
+    <div class="auth-error" id="auth-error"></div>
+  </div>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div class="app" id="app">
+
+  <div class="header">
+    <div class="header-left">
+      <h1>Keepstead</h1>
+      <p>Property Management Tax Organizer</p>
+    </div>
+    <div class="header-right">
+      <span class="user-pill" id="user-email-display"></span>
+      <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="years-nav" id="years-nav">
+    <button class="year-tab active" onclick="showSection('intake')">Intake</button>
+    <button class="year-tab" onclick="showSection('properties')">Properties</button>
+    <button class="year-tab" onclick="showSection('lifeevents')">Life Events</button>
+    <!-- year tabs inserted by JS after intake -->
+    <button class="year-tab" onclick="showSection('summary')">Summary & Report</button>
+  </div>
+
+  <div class="save-bar">
+    <span id="save-status">All changes saved when you click Save.</span>
+    <button class="btn-save" onclick="saveAll()">💾 Save All</button>
+  </div>
+
+  <div class="container">
+
+    <!-- ── INTAKE ── -->
+    <div class="year-section active" id="section-intake">
+      <div class="year-banner">
+        <h2>Rental Intake</h2>
+        <span class="status-pill">Step 1</span>
+      </div>
+      <div class="card">
+        <div class="section-label">Owner / Filer</div>
+        <div class="form-row">
+          <div class="field">
+            <label>Full Legal Name</label>
+            <input type="text" id="owner-name" placeholder="As it appears on SSN card / entity return">
+          </div>
+          <div class="field">
+            <label>SSN or EIN</label>
+            <input type="text" id="owner-tin" placeholder="XXX-XX-XXXX or XX-XXXXXXX">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Filing Entity</label>
+            <select id="owner-entity">
+              <option value="">— Select —</option>
+              <option value="individual">Individual (Sch E)</option>
+              <option value="jointventure">Jointly-held (Sch E, both spouses)</option>
+              <option value="llc-disregarded">Single-member LLC (disregarded, Sch E)</option>
+              <option value="llc-partnership">Multi-member LLC (Form 1065)</option>
+              <option value="scorp">S-Corp (Form 1120-S)</option>
+              <option value="ccorp">C-Corp (Form 1120)</option>
+              <option value="other">Other / Ask preparer</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Filing Status</label>
+            <select id="owner-filing-status">
+              <option value="">— Select —</option>
+              <option value="single">Single</option>
+              <option value="mfj">Married Filing Jointly</option>
+              <option value="mfs">Married Filing Separately</option>
+              <option value="hoh">Head of Household</option>
+              <option value="qw">Qualifying Widow(er)</option>
+              <option value="na">N/A — Entity return</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Phone</label>
+            <input type="text" id="owner-phone" placeholder="Best contact number">
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="owner-email" placeholder="For document delivery">
+          </div>
+        </div>
+        <div class="form-row single">
+          <div class="field">
+            <label>Mailing Address</label>
+            <input type="text" id="owner-address" placeholder="Street, City, State, ZIP">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Resident State</label>
+            <input type="text" id="owner-state" placeholder="e.g. MN, TX, FL">
+          </div>
+          <div class="field">
+            <label>Real Estate Professional? (750+ hrs)</label>
+            <select id="owner-repro">
+              <option value="no">No</option>
+              <option value="yes">Yes — qualifies as REP</option>
+              <option value="unsure">Not sure</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-label">Scope of Work</div>
+        <div class="note-box">
+          Choose how many years back to organize. The IRS statute for unfiled returns generally reaches back <strong>6 years</strong>. You can go up to 10 if your preparer needs it.
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Most Recent Tax Year to Prepare</label>
+            <select id="intake-latest-year"></select>
+          </div>
+          <div class="field">
+            <label>How Many Years Back?</label>
+            <select id="intake-year-count">
+              <option value="2">2 years</option>
+              <option value="3">3 years</option>
+              <option value="4">4 years</option>
+              <option value="5">5 years</option>
+              <option value="6" selected>6 years (IRS default)</option>
+              <option value="7">7 years</option>
+              <option value="8">8 years</option>
+              <option value="9">9 years</option>
+              <option value="10">10 years</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Any 1031 Exchanges in these years?</label>
+            <select id="intake-1031">
+              <option value="no">No</option>
+              <option value="yes">Yes — add to Life Events</option>
+              <option value="unsure">Not sure</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Any Property Sales in these years?</label>
+            <select id="intake-sales">
+              <option value="no">No</option>
+              <option value="yes">Yes — add to Life Events</option>
+              <option value="unsure">Not sure</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Have prior depreciation schedules?</label>
+            <select id="intake-depr-records">
+              <option value="yes">Yes — I have them</option>
+              <option value="partial">Some, not all</option>
+              <option value="no">No — will reconstruct from closing docs</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Bookkeeping Software Used</label>
+            <select id="intake-software">
+              <option value="">— Select —</option>
+              <option value="qbo">QuickBooks Online</option>
+              <option value="qbd">QuickBooks Desktop</option>
+              <option value="stessa">Stessa</option>
+              <option value="rentredi">RentRedi</option>
+              <option value="baselane">Baselane</option>
+              <option value="appfolio">AppFolio</option>
+              <option value="buildium">Buildium</option>
+              <option value="spreadsheet">Spreadsheet only</option>
+              <option value="none">None / paper</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+        <button class="auth-btn" style="width:auto;padding:0.6rem 1.5rem;margin-top:0.5rem;" onclick="applyIntake()">Apply Intake & Build Worktables →</button>
+      </div>
+
+      <div class="card">
+        <div class="section-label">Preparer Notes</div>
+        <div class="form-row single">
+          <div class="field">
+            <label>Anything else the preparer should know?</label>
+            <textarea id="owner-notes" placeholder="Flags, quirks, missing records, prior-year issues, expected K-1s, anything..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PROPERTIES ── -->
+    <div class="year-section" id="section-properties">
+      <div class="year-banner">
+        <h2>Properties</h2>
+        <span class="status-pill">Step 2</span>
+      </div>
+      <div class="card">
+        <div class="section-label">Your Rental Portfolio</div>
+        <div class="note-box">
+          Add each property you own or manage. Every property here becomes a row in each tax year's worktable.
+          <br>Sold properties still belong here — add them and note the sale under <strong>Life Events</strong>.
+        </div>
+        <div id="properties-list"></div>
+        <button class="btn-add-prop" onclick="addProperty()">+ Add Property</button>
+      </div>
+    </div>
+
+    <!-- ── LIFE EVENTS ── -->
+    <div class="year-section" id="section-lifeevents">
+      <div class="year-banner">
+        <h2>Life Events</h2>
+        <span class="status-pill">Purchases · Sales · Refis · 1031s</span>
+      </div>
+      <div class="card">
+        <div class="section-label">Property Events by Year</div>
+        <div class="note-box">
+          Log any acquisition, disposition, refinance, 1031 exchange, casualty loss, or conversion during your organized years. These drive basis, depreciation, and gain/loss calculations.
+        </div>
+        <div id="life-events-list"></div>
+        <button class="btn-add-event" onclick="addLifeEvent()">+ Add Life Event</button>
+      </div>
+    </div>
+
+    <!-- Year sections inserted by JS between lifeevents and summary -->
+
+    <!-- ── SUMMARY ── -->
+    <div class="year-section" id="section-summary">
+      <div class="year-banner">
+        <h2>Summary & Tax-Prep Report</h2>
+        <span class="status-pill">Final Review</span>
+      </div>
+      <div class="card">
+        <div class="section-label">Year-by-Year Overview</div>
+        <div class="summary-grid" id="summary-grid"></div>
+        <div class="form-row single">
+          <div class="field">
+            <label>What's still outstanding?</label>
+            <textarea id="summary-notes" placeholder="Missing 1099s, K-1s still pending, HUD-1s to dig up, prior depreciation to reconstruct, anything..."></textarea>
+          </div>
+        </div>
+        <div style="margin-top:1rem;">
+          <button class="btn-report" onclick="generateReport()">📄 Generate Tax-Prep Report</button>
+          <button class="btn-save" onclick="saveAll()" style="background:var(--accent);">💾 Save & Submit for Review</button>
+        </div>
+        <div id="report-output" class="report-output" style="display:none;"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── SUPABASE ──
+const SUPABASE_URL = 'https://fufhjraudksavfncpdrm.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1ZmhqcmF1ZGtzYXZmbmNwZHJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1OTE3MDYsImV4cCI6MjA4NjE2NzcwNn0.JRjvoMM2Q2bFJtggzsOGW0x1GO3L4JpNF2zt3BqA4Ug';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+let properties = [];     // [{id, nickname, address, type, acquired, sold, notes}]
+let lifeEvents = [];     // [{id, year, property_id, kind, amount, notes}]
+let years = [];          // filled after intake, most-recent first in UI
+
+// Populate latest-year dropdown (current year-1 down 10 years)
+(function initLatestYear() {
+  const sel = document.getElementById('intake-latest-year');
+  const nowYear = new Date().getFullYear();
+  // default most-recent prior-year return
+  for (let y = nowYear; y >= nowYear - 10; y--) {
+    const opt = document.createElement('option');
+    opt.value = String(y);
+    opt.textContent = String(y);
+    if (y === nowYear - 1) opt.selected = true;
+    sel.appendChild(opt);
+  }
+})();
+
+// ── AUTH ──
+async function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) showAuthError(error.message);
+}
+
+async function handleSignup() {
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  const name = document.getElementById('signup-name').value.trim();
+  const { error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name } } });
+  if (error) showAuthError(error.message);
+  else showAuthError('Check your email to confirm your account, then sign in.');
+}
+
+async function handleLogout() {
+  await sb.auth.signOut();
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+function showAuthError(msg) {
+  document.getElementById('auth-error').textContent = msg;
+}
+
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='signup')));
+  document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('signup-form').style.display = tab === 'signup' ? 'block' : 'none';
+  document.getElementById('auth-error').textContent = '';
+}
+
+sb.auth.onAuthStateChange((event, session) => {
+  if (session?.user) {
+    currentUser = session.user;
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('user-email-display').textContent = session.user.email;
+    loadSavedData();
+  } else {
+    currentUser = null;
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+});
+
+// ── LINE ITEMS (Schedule E columns) ──
+const lineItems = [
+  { id: 'rent',       label: 'Rents Received',        kind: 'income' },
+  { id: 'royalty',    label: 'Royalties',             kind: 'income' },
+  { id: 'advertising',label: 'Advertising',           kind: 'expense' },
+  { id: 'auto',       label: 'Auto & Travel',         kind: 'expense' },
+  { id: 'cleaning',   label: 'Cleaning & Maintenance',kind: 'expense' },
+  { id: 'commissions',label: 'Commissions',           kind: 'expense' },
+  { id: 'insurance',  label: 'Insurance',             kind: 'expense' },
+  { id: 'legal',      label: 'Legal & Professional',  kind: 'expense' },
+  { id: 'mgmt',       label: 'Management Fees',       kind: 'expense' },
+  { id: 'mortgage',   label: 'Mortgage Interest',     kind: 'expense' },
+  { id: 'otherint',   label: 'Other Interest',        kind: 'expense' },
+  { id: 'repairs',    label: 'Repairs',               kind: 'expense' },
+  { id: 'supplies',   label: 'Supplies',              kind: 'expense' },
+  { id: 'taxes',      label: 'Property Taxes',        kind: 'expense' },
+  { id: 'utilities',  label: 'Utilities',             kind: 'expense' },
+  { id: 'depreciation',label:'Depreciation',          kind: 'expense' },
+  { id: 'other',      label: 'Other Expenses',        kind: 'expense' },
+];
+
+const lifeEventKinds = [
+  { id: 'purchase',    label: 'Purchase' },
+  { id: 'sale',        label: 'Sale' },
+  { id: 'refi',        label: 'Refinance' },
+  { id: 'cashout',     label: 'Cash-out Refi' },
+  { id: 'exchange1031',label: '1031 Exchange' },
+  { id: 'casualty',    label: 'Casualty Loss' },
+  { id: 'conversion',  label: 'Conversion (personal ↔ rental)' },
+  { id: 'improvement', label: 'Major Improvement / Capital' },
+  { id: 'other',       label: 'Other' },
+];
+
+// ── INTAKE APPLY ──
+function applyIntake() {
+  const latest = parseInt(document.getElementById('intake-latest-year').value, 10);
+  const count = parseInt(document.getElementById('intake-year-count').value, 10);
+  if (!latest || !count) { showToast('Pick a latest year and year count first.', true); return; }
+
+  // Build years array — most recent first for UI, oldest first internally
+  years = [];
+  for (let i = 0; i < count; i++) years.push(String(latest - i));
+  years.reverse(); // oldest to newest internally
+
+  rebuildYearTabs();
+  rebuildYearSections();
+  if (properties.length === 0) addProperty();
+  showToast('Worktables ready. Head to Properties →', false);
+  showSection('properties');
+}
+
+function rebuildYearTabs() {
+  const nav = document.getElementById('years-nav');
+  // Wipe existing year tabs (keep fixed: intake, properties, lifeevents, summary)
+  nav.innerHTML = '';
+  const fixed = [
+    { id: 'intake',     label: 'Intake' },
+    { id: 'properties', label: 'Properties' },
+    { id: 'lifeevents', label: 'Life Events' },
+  ];
+  fixed.forEach(f => {
+    const btn = document.createElement('button');
+    btn.className = 'year-tab';
+    btn.textContent = f.label;
+    btn.onclick = () => showSection(f.id);
+    nav.appendChild(btn);
+  });
+  // year tabs, most-recent first in UI
+  [...years].reverse().forEach(y => {
+    const btn = document.createElement('button');
+    btn.className = 'year-tab';
+    btn.textContent = y;
+    btn.onclick = () => showSection(y);
+    nav.appendChild(btn);
+  });
+  const btnSum = document.createElement('button');
+  btnSum.className = 'year-tab';
+  btnSum.textContent = 'Summary & Report';
+  btnSum.onclick = () => showSection('summary');
+  nav.appendChild(btnSum);
+}
+
+function rebuildYearSections() {
+  // Remove old year sections
+  document.querySelectorAll('.year-section.year-dynamic').forEach(s => s.remove());
+  const summary = document.getElementById('section-summary');
+  years.forEach(y => {
+    const sec = document.createElement('div');
+    sec.className = 'year-section year-dynamic';
+    sec.id = `section-${y}`;
+    sec.innerHTML = `
+      <div class="year-banner">
+        <h2>Tax Year ${y}</h2>
+        <span class="status-pill">In Progress</span>
+      </div>
+      <div class="card">
+        <div class="section-label">Schedule E Worktable — ${y}</div>
+        <div class="note-box">
+          One row per property, one column per line item. Enter totals you have; leave blanks where you don't.
+          NET = total income (Rent + Royalty) minus total expenses.
+        </div>
+        <div class="worktable-wrap">
+          <table class="worktable" id="worktable-${y}">
+            ${buildWorktableHTML(y)}
+          </table>
+        </div>
+        <div class="form-row single" style="margin-top:0.85rem;">
+          <div class="field">
+            <label>Notes for ${y}</label>
+            <textarea id="year-notes-${y}" placeholder="Missing records, oddities, things to flag for ${y}..."></textarea>
+          </div>
+        </div>
+      </div>
+    `;
+    summary.parentNode.insertBefore(sec, summary);
+  });
+  // wire input listeners for live NET recalc
+  years.forEach(y => attachWorktableListeners(y));
+}
+
+function buildWorktableHTML(year) {
+  if (properties.length === 0) {
+    return `<tr><td class="first">Add properties first →</td></tr>`;
+  }
+  // header row
+  const head = `<thead><tr>
+    <th class="first">Property</th>
+    ${lineItems.map(li => `<th title="${li.kind}">${li.label}</th>`).join('')}
+    <th>NET</th>
+  </tr></thead>`;
+  // body rows
+  const body = `<tbody>
+    ${properties.map(p => `
+      <tr data-prop="${p.id}">
+        <td class="first" title="${escapeHtml(p.address || '')}">${escapeHtml(p.nickname || 'Untitled')}</td>
+        ${lineItems.map(li => `
+          <td><input type="number" step="0.01" placeholder="0.00"
+            id="cell-${year}-${p.id}-${li.id}"
+            data-year="${year}" data-prop="${p.id}" data-line="${li.id}" data-kind="${li.kind}">
+          </td>`).join('')}
+        <td class="net-cell" id="net-${year}-${p.id}">—</td>
+      </tr>
+    `).join('')}
+    <tr class="net-row">
+      <td class="first">TOTALS</td>
+      ${lineItems.map(li => `<td id="total-${year}-${li.id}">—</td>`).join('')}
+      <td id="total-${year}-net">—</td>
+    </tr>
+  </tbody>`;
+  return head + body;
+}
+
+function attachWorktableListeners(year) {
+  const tbl = document.getElementById(`worktable-${year}`);
+  if (!tbl) return;
+  tbl.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('input', () => recalcYear(year));
+  });
+  recalcYear(year);
+}
+
+function recalcYear(year) {
+  const lineTotals = {};
+  lineItems.forEach(li => lineTotals[li.id] = 0);
+  let yearNet = 0;
+
+  properties.forEach(p => {
+    let rowIncome = 0, rowExpense = 0;
+    lineItems.forEach(li => {
+      const el = document.getElementById(`cell-${year}-${p.id}-${li.id}`);
+      const v = parseFloat(el?.value);
+      if (!isNaN(v)) {
+        lineTotals[li.id] += v;
+        if (li.kind === 'income') rowIncome += v;
+        else rowExpense += v;
+      }
+    });
+    const rowNet = rowIncome - rowExpense;
+    const netCell = document.getElementById(`net-${year}-${p.id}`);
+    if (netCell) {
+      netCell.textContent = formatMoney(rowNet);
+      netCell.className = 'net-cell ' + (rowNet >= 0 ? 'pos' : 'neg');
+    }
+    yearNet += rowNet;
+  });
+
+  lineItems.forEach(li => {
+    const el = document.getElementById(`total-${year}-${li.id}`);
+    if (el) el.textContent = lineTotals[li.id] ? formatMoney(lineTotals[li.id]) : '—';
+  });
+  const netEl = document.getElementById(`total-${year}-net`);
+  if (netEl) {
+    netEl.textContent = formatMoney(yearNet);
+    netEl.className = yearNet >= 0 ? 'pos' : 'neg';
+  }
+}
+
+function formatMoney(n) {
+  const abs = Math.abs(n);
+  const s = '$' + abs.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return n < 0 ? '(' + s + ')' : s;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ── PROPERTIES ──
+function addProperty(data) {
+  const id = data?.id || ('p' + Date.now() + Math.floor(Math.random()*1000));
+  properties.push({
+    id,
+    nickname: data?.nickname || '',
+    address: data?.address || '',
+    type: data?.type || '',
+    acquired: data?.acquired || '',
+    sold: data?.sold || '',
+    notes: data?.notes || '',
+  });
+  renderProperties();
+  // Rebuild worktables so new property shows up
+  if (years.length) rebuildYearSections();
+}
+
+function removeProperty(id) {
+  if (!confirm('Remove this property? Its year data will be cleared.')) return;
+  properties = properties.filter(p => p.id !== id);
+  renderProperties();
+  if (years.length) rebuildYearSections();
+}
+
+function renderProperties() {
+  const list = document.getElementById('properties-list');
+  if (properties.length === 0) {
+    list.innerHTML = '<div class="note-box">No properties yet. Click "+ Add Property" below to start.</div>';
+    return;
+  }
+  list.innerHTML = properties.map((p, idx) => `
+    <div class="property-card" data-prop="${p.id}">
+      <div class="property-card-header">
+        <span class="property-tag">Property ${idx+1}</span>
+        <button class="btn-remove-prop" onclick="removeProperty('${p.id}')">✕ Remove</button>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Nickname (shown in worktables)</label>
+          <input type="text" value="${escapeHtml(p.nickname)}" onchange="updateProp('${p.id}','nickname',this.value)" placeholder="e.g. Elm St Duplex">
+        </div>
+        <div class="field">
+          <label>Property Type</label>
+          <select onchange="updateProp('${p.id}','type',this.value)">
+            <option value="">— Select —</option>
+            <option value="single-family"    ${p.type==='single-family'?'selected':''}>Single-family</option>
+            <option value="duplex"           ${p.type==='duplex'?'selected':''}>Duplex</option>
+            <option value="triplex-fourplex" ${p.type==='triplex-fourplex'?'selected':''}>Triplex / Fourplex</option>
+            <option value="multifamily-5"    ${p.type==='multifamily-5'?'selected':''}>Multi-family 5+</option>
+            <option value="condo"            ${p.type==='condo'?'selected':''}>Condo</option>
+            <option value="townhouse"        ${p.type==='townhouse'?'selected':''}>Townhouse</option>
+            <option value="short-term"       ${p.type==='short-term'?'selected':''}>Short-term rental</option>
+            <option value="commercial"       ${p.type==='commercial'?'selected':''}>Commercial</option>
+            <option value="land"             ${p.type==='land'?'selected':''}>Land</option>
+            <option value="other"            ${p.type==='other'?'selected':''}>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row single">
+        <div class="field">
+          <label>Address</label>
+          <input type="text" value="${escapeHtml(p.address)}" onchange="updateProp('${p.id}','address',this.value)" placeholder="Street, City, State, ZIP">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Date Acquired</label>
+          <input type="date" value="${escapeHtml(p.acquired)}" onchange="updateProp('${p.id}','acquired',this.value)">
+        </div>
+        <div class="field">
+          <label>Date Sold (if applicable)</label>
+          <input type="date" value="${escapeHtml(p.sold)}" onchange="updateProp('${p.id}','sold',this.value)">
+        </div>
+      </div>
+      <div class="form-row single">
+        <div class="field">
+          <label>Notes</label>
+          <textarea onchange="updateProp('${p.id}','notes',this.value)" placeholder="Anything worth noting about this property...">${escapeHtml(p.notes)}</textarea>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateProp(id, field, value) {
+  const p = properties.find(x => x.id === id);
+  if (!p) return;
+  p[field] = value;
+  if (field === 'nickname' || field === 'address') {
+    // update worktable first-column labels live
+    years.forEach(y => {
+      const row = document.querySelector(`#worktable-${y} tr[data-prop="${id}"] td.first`);
+      if (row) {
+        row.textContent = p.nickname || 'Untitled';
+        row.title = p.address || '';
+      }
+    });
+  }
+}
+
+// ── LIFE EVENTS ──
+function addLifeEvent(data) {
+  const id = data?.id || ('e' + Date.now() + Math.floor(Math.random()*1000));
+  lifeEvents.push({
+    id,
+    year: data?.year || (years[years.length-1] || ''),
+    property_id: data?.property_id || '',
+    kind: data?.kind || 'purchase',
+    amount: data?.amount || '',
+    date: data?.date || '',
+    notes: data?.notes || '',
+  });
+  renderLifeEvents();
+}
+
+function removeLifeEvent(id) {
+  lifeEvents = lifeEvents.filter(e => e.id !== id);
+  renderLifeEvents();
+}
+
+function renderLifeEvents() {
+  const list = document.getElementById('life-events-list');
+  if (lifeEvents.length === 0) {
+    list.innerHTML = '<div class="note-box">No life events logged. Click "+ Add Life Event" if any properties were purchased, sold, refinanced, exchanged (1031), or had casualty events.</div>';
+    return;
+  }
+  list.innerHTML = lifeEvents.map(e => `
+    <div class="property-card" data-event="${e.id}">
+      <div class="property-card-header">
+        <span class="property-tag">${lifeEventKinds.find(k=>k.id===e.kind)?.label || 'Event'}</span>
+        <button class="btn-remove-prop" onclick="removeLifeEvent('${e.id}')">✕ Remove</button>
+      </div>
+      <div class="form-row three">
+        <div class="field">
+          <label>Year</label>
+          <select onchange="updateEvent('${e.id}','year',this.value)">
+            ${years.map(y => `<option value="${y}" ${e.year===y?'selected':''}>${y}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label>Property</label>
+          <select onchange="updateEvent('${e.id}','property_id',this.value)">
+            <option value="">— Select Property —</option>
+            ${properties.map(p => `<option value="${p.id}" ${e.property_id===p.id?'selected':''}>${escapeHtml(p.nickname||'Untitled')}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label>Event Type</label>
+          <select onchange="updateEvent('${e.id}','kind',this.value)">
+            ${lifeEventKinds.map(k => `<option value="${k.id}" ${e.kind===k.id?'selected':''}>${k.label}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-row three">
+        <div class="field">
+          <label>Event Date</label>
+          <input type="date" value="${escapeHtml(e.date)}" onchange="updateEvent('${e.id}','date',this.value)">
+        </div>
+        <div class="field">
+          <label>Amount (sale price, refi amt, etc.)</label>
+          <input type="number" step="0.01" value="${escapeHtml(e.amount)}" onchange="updateEvent('${e.id}','amount',this.value)" placeholder="0.00">
+        </div>
+        <div class="field">
+          <label>&nbsp;</label>
+          <div style="font-size:0.78rem;color:var(--muted);padding-top:0.55rem;">Closing docs, HUD-1, 8824 — bring them all.</div>
+        </div>
+      </div>
+      <div class="form-row single">
+        <div class="field">
+          <label>Notes</label>
+          <textarea onchange="updateEvent('${e.id}','notes',this.value)" placeholder="Basis carryover, replacement property, relinquished party, lender, anything...">${escapeHtml(e.notes)}</textarea>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateEvent(id, field, value) {
+  const e = lifeEvents.find(x => x.id === id);
+  if (!e) return;
+  e[field] = value;
+}
+
+// ── NAV ──
+function showSection(id) {
+  document.querySelectorAll('.year-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.year-tab').forEach(t => t.classList.remove('active'));
+  const target = document.getElementById(`section-${id}`);
+  if (target) target.classList.add('active');
+  // find matching tab by label — intake/properties/lifeevents/summary have fixed labels, years are just the year
+  const labelMap = { intake:'Intake', properties:'Properties', lifeevents:'Life Events', summary:'Summary & Report' };
+  const wantLabel = labelMap[id] || id;
+  document.querySelectorAll('.year-tab').forEach(t => {
+    if (t.textContent === wantLabel) t.classList.add('active');
+  });
+  if (id === 'summary') buildSummary();
+  window.scrollTo(0,0);
+}
+
+// ── SUMMARY ──
+function buildSummary() {
+  const grid = document.getElementById('summary-grid');
+  if (years.length === 0) {
+    grid.innerHTML = '<div class="note-box">Apply your intake first — then come back here for the overview.</div>';
+    return;
+  }
+  grid.innerHTML = [...years].reverse().map(year => {
+    let income = 0, expense = 0;
+    properties.forEach(p => {
+      lineItems.forEach(li => {
+        const v = parseFloat(document.getElementById(`cell-${year}-${p.id}-${li.id}`)?.value);
+        if (!isNaN(v)) {
+          if (li.kind === 'income') income += v;
+          else expense += v;
+        }
+      });
+    });
+    const net = income - expense;
+    const eventCount = lifeEvents.filter(e => e.year === year).length;
+    return `
+      <div class="summary-card">
+        <h4>${year}</h4>
+        <p>
+          <strong>Gross Income:</strong> ${income ? '$'+income.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}<br>
+          <strong>Total Expenses:</strong> ${expense ? '$'+expense.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}<br>
+          <strong>Net (pre-loss-limit):</strong> ${formatMoney(net)}<br>
+          <strong>Properties:</strong> ${properties.length}<br>
+          <strong>Life Events:</strong> ${eventCount}
+        </p>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── REPORT OUTPUT ──
+function generateReport() {
+  if (years.length === 0) { showToast('Apply intake first.', true); return; }
+  const out = document.getElementById('report-output');
+  const ownerName = document.getElementById('owner-name').value || '(name)';
+  const ownerTin = document.getElementById('owner-tin').value || '(TIN)';
+  const entity = document.getElementById('owner-entity').selectedOptions[0]?.text || '—';
+  const filing = document.getElementById('owner-filing-status').selectedOptions[0]?.text || '—';
+  const state = document.getElementById('owner-state').value || '—';
+  const repro = document.getElementById('owner-repro').selectedOptions[0]?.text || '—';
+  const notes = document.getElementById('owner-notes').value || '(none)';
+  const outstanding = document.getElementById('summary-notes').value || '(none noted)';
+
+  let html = '';
+  html += `<h3>Property Management Tax Organizer — Summary</h3>`;
+  html += `<p><strong>Filer:</strong> ${escapeHtml(ownerName)} · ${escapeHtml(ownerTin)}<br>`;
+  html += `<strong>Entity:</strong> ${escapeHtml(entity)} · <strong>Filing:</strong> ${escapeHtml(filing)}<br>`;
+  html += `<strong>Resident State:</strong> ${escapeHtml(state)} · <strong>Real Estate Professional:</strong> ${escapeHtml(repro)}<br>`;
+  html += `<strong>Years Covered:</strong> ${years.join(', ')}<br>`;
+  html += `<strong>Properties:</strong> ${properties.length} · <strong>Life Events:</strong> ${lifeEvents.length}</p>`;
+
+  html += `<h4>Properties</h4>`;
+  if (properties.length === 0) html += `<p>(none)</p>`;
+  else html += '<p>' + properties.map((p,i) =>
+    `${i+1}. <strong>${escapeHtml(p.nickname||'Untitled')}</strong> — ${escapeHtml(p.type||'—')} — ${escapeHtml(p.address||'—')}`+
+    (p.acquired?` · acquired ${p.acquired}`:'')+(p.sold?` · sold ${p.sold}`:'')
+  ).join('<br>') + '</p>';
+
+  [...years].reverse().forEach(y => {
+    html += `<h4>Tax Year ${y}</h4>`;
+    let ytdIncome = 0, ytdExpense = 0;
+    const rows = properties.map(p => {
+      let pInc = 0, pExp = 0;
+      const cells = {};
+      lineItems.forEach(li => {
+        const v = parseFloat(document.getElementById(`cell-${y}-${p.id}-${li.id}`)?.value);
+        if (!isNaN(v)) {
+          cells[li.id] = v;
+          if (li.kind==='income') pInc += v; else pExp += v;
+        }
+      });
+      ytdIncome += pInc; ytdExpense += pExp;
+      const net = pInc - pExp;
+      return `  · ${escapeHtml(p.nickname||'Untitled')}: income ${formatMoney(pInc)}, expenses ${formatMoney(pExp)}, <strong>net ${formatMoney(net)}</strong>`;
+    }).join('<br>');
+    html += `<p>${rows || '(no data entered)'}</p>`;
+    html += `<p><strong>Year Totals:</strong> Income ${formatMoney(ytdIncome)} · Expenses ${formatMoney(ytdExpense)} · <strong>Net ${formatMoney(ytdIncome-ytdExpense)}</strong></p>`;
+    const yrEvents = lifeEvents.filter(e => e.year === y);
+    if (yrEvents.length) {
+      html += `<p><em>Life Events:</em><br>` + yrEvents.map(e => {
+        const prop = properties.find(p=>p.id===e.property_id);
+        const kind = lifeEventKinds.find(k=>k.id===e.kind)?.label || e.kind;
+        return `  · ${kind} — ${escapeHtml(prop?.nickname||'(prop?)')} — ${e.date||'(date?)'} — ${e.amount?formatMoney(parseFloat(e.amount)):'(amt?)'}${e.notes?' — '+escapeHtml(e.notes):''}`;
+      }).join('<br>') + `</p>`;
+    }
+    const yNotes = document.getElementById(`year-notes-${y}`)?.value;
+    if (yNotes) html += `<p><em>Year notes:</em> ${escapeHtml(yNotes)}</p>`;
+  });
+
+  html += `<h4>Preparer Notes</h4><p>${escapeHtml(notes)}</p>`;
+  html += `<h4>Outstanding Items</h4><p>${escapeHtml(outstanding)}</p>`;
+  html += `<hr style="border:none;border-top:1px solid var(--border);margin:1rem 0;">`;
+  html += `<p style="font-size:0.78rem;color:var(--muted);">Generated ${new Date().toLocaleString()} · Keepstead PM Tax Organizer</p>`;
+
+  out.innerHTML = html;
+  out.style.display = 'block';
+  out.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── SAVE / LOAD ──
+function collectAllData() {
+  const data = { intake: {}, properties, lifeEvents, years, yearData: {}, year_notes: {}, summary_notes: '' };
+
+  ['owner-name','owner-tin','owner-entity','owner-filing-status','owner-phone','owner-email','owner-address',
+   'owner-state','owner-repro','owner-notes',
+   'intake-latest-year','intake-year-count','intake-1031','intake-sales','intake-depr-records','intake-software'
+  ].forEach(f => {
+    const el = document.getElementById(f);
+    if (el) data.intake[f] = el.value;
+  });
+
+  years.forEach(y => {
+    data.yearData[y] = {};
+    properties.forEach(p => {
+      data.yearData[y][p.id] = {};
+      lineItems.forEach(li => {
+        const el = document.getElementById(`cell-${y}-${p.id}-${li.id}`);
+        if (el && el.value !== '') data.yearData[y][p.id][li.id] = el.value;
+      });
+    });
+    const yn = document.getElementById(`year-notes-${y}`);
+    if (yn) data.year_notes[y] = yn.value;
+  });
+
+  const sn = document.getElementById('summary-notes');
+  if (sn) data.summary_notes = sn.value;
+
+  return data;
+}
+
+async function saveAll() {
+  if (!currentUser) return;
+  const saveBtn = document.querySelector('.btn-save');
+  if (saveBtn) { saveBtn.textContent = 'Saving...'; saveBtn.style.opacity = '0.6'; }
+
+  const payload = {
+    user_id: currentUser.id,
+    owner_name: document.getElementById('owner-name')?.value || '',
+    submitted_at: new Date().toISOString(),
+    raw_form_data: collectAllData(),
+    years_covered: years,
+    property_count: properties.length,
+    status: 'in_review'
+  };
+
+  try {
+    const { error } = await sb.from('pm_organizer_submissions').upsert(payload, { onConflict: 'user_id' });
+    if (error) throw error;
+    setSaveStatus('Saved ✓ ' + new Date().toLocaleTimeString());
+    showToast('Saved to Keepstead ✓', false);
+  } catch(e) {
+    showToast('Save failed: ' + e.message, true);
+  } finally {
+    if (saveBtn) { saveBtn.textContent = '💾 Save All'; saveBtn.disabled = false; saveBtn.style.opacity = '1'; }
+  }
+}
+
+async function loadSavedData() {
+  if (!currentUser) return;
+  setSaveStatus('Loading...');
+  try {
+    const { data, error } = await sb.from('pm_organizer_submissions')
+      .select('*').eq('user_id', currentUser.id).maybeSingle();
+    if (error || !data) { setSaveStatus('No saved data — fill in and save.'); return; }
+
+    const saved = data.raw_form_data;
+    if (!saved) return;
+
+    // intake
+    if (saved.intake) {
+      Object.entries(saved.intake).forEach(([k,v]) => {
+        const el = document.getElementById(k);
+        if (el) el.value = v;
+      });
+    }
+
+    // properties & life events (restore before rebuilding tabs)
+    properties = Array.isArray(saved.properties) ? saved.properties : [];
+    lifeEvents = Array.isArray(saved.lifeEvents) ? saved.lifeEvents : [];
+    years = Array.isArray(saved.years) ? saved.years : [];
+
+    if (years.length) {
+      rebuildYearTabs();
+      rebuildYearSections();
+    }
+    renderProperties();
+    renderLifeEvents();
+
+    // year cells
+    if (saved.yearData) {
+      Object.entries(saved.yearData).forEach(([y, propMap]) => {
+        Object.entries(propMap).forEach(([pid, lineMap]) => {
+          Object.entries(lineMap).forEach(([li, v]) => {
+            const el = document.getElementById(`cell-${y}-${pid}-${li}`);
+            if (el) el.value = v;
+          });
+        });
+        recalcYear(y);
+      });
+    }
+
+    if (saved.year_notes) {
+      Object.entries(saved.year_notes).forEach(([y, v]) => {
+        const el = document.getElementById(`year-notes-${y}`);
+        if (el) el.value = v;
+      });
+    }
+
+    if (saved.summary_notes) {
+      const sn = document.getElementById('summary-notes');
+      if (sn) sn.value = saved.summary_notes;
+    }
+
+    setSaveStatus('Data loaded ✓');
+  } catch(e) {
+    setSaveStatus('Could not load saved data.');
+  }
+}
+
+function setSaveStatus(msg) {
+  const el = document.getElementById('save-status');
+  if (el) el.textContent = msg;
+}
+
+function showToast(msg, isError = false) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  t.style.background = isError ? 'var(--accent)' : 'var(--sage)';
+  t.style.color = 'white';
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+// Initial renders
+renderProperties();
+renderLifeEvents();
+</script>
+
+<!-- Ask Kari widget -->
+<script src="https://chat.karikounkel.com/widget.js" defer></script>
+
+</body>
+</html>
