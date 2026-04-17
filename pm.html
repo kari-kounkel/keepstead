@@ -700,8 +700,17 @@
     <!-- ── INTAKE ── -->
     <div class="year-section active" id="section-intake">
       <div class="year-banner">
-        <h2>Rental Intake</h2>
-        <span class="status-pill">Step 1</span>
+        <h2>Start Here — Your Intake</h2>
+        <span class="status-pill">Step 1 of 4</span>
+      </div>
+      <div class="card" style="background:#fff9f0;border-left:4px solid var(--gold);">
+        <div class="section-label" style="color:var(--gold);">Welcome</div>
+        <p style="font-size:0.95rem;line-height:1.6;color:var(--ink);">
+          This organizer walks you through four steps: <strong>Intake → Properties → Life Events → Worktables by Year</strong>.
+        </p>
+        <p style="font-size:0.9rem;line-height:1.6;color:var(--muted);margin-top:0.5rem;">
+          Fill out this page first. At the bottom, you'll pick <strong>which tax years you want to organize</strong> — anywhere from 2 to 10 years. Nothing gets built until you click <em>Apply Intake</em>.
+        </p>
       </div>
       <div class="card">
         <div class="section-label">Owner / Filer</div>
@@ -774,10 +783,10 @@
         </div>
       </div>
 
-      <div class="card">
-        <div class="section-label">Scope of Work</div>
+      <div class="card" style="border-left:4px solid var(--accent);">
+        <div class="section-label">⚡ Pick Your Years</div>
         <div class="note-box">
-          Choose how many years back to organize. The IRS statute for unfiled returns generally reaches back <strong>6 years</strong>. You can go up to 10 if your preparer needs it.
+          <strong>This is where you choose your scope.</strong> Pick your most recent tax year, then choose how many years back to organize. The IRS statute for unfiled returns generally reaches back <strong>6 years</strong>, but you can pick anywhere from 2 to 10.
         </div>
         <div class="form-row">
           <div class="field">
@@ -787,11 +796,12 @@
           <div class="field">
             <label>How Many Years Back?</label>
             <select id="intake-year-count">
+              <option value="">— Pick your range —</option>
               <option value="2">2 years</option>
               <option value="3">3 years</option>
               <option value="4">4 years</option>
               <option value="5">5 years</option>
-              <option value="6" selected>6 years (IRS default)</option>
+              <option value="6">6 years (IRS default)</option>
               <option value="7">7 years</option>
               <option value="8">8 years</option>
               <option value="9">9 years</option>
@@ -930,16 +940,18 @@ let properties = [];     // [{id, nickname, address, type, acquired, sold, notes
 let lifeEvents = [];     // [{id, year, property_id, kind, amount, notes}]
 let years = [];          // filled after intake, most-recent first in UI
 
-// Populate latest-year dropdown (current year-1 down 10 years)
+// Populate latest-year dropdown — NO auto-select, user must pick
 (function initLatestYear() {
   const sel = document.getElementById('intake-latest-year');
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = '— Pick your most recent year —';
+  sel.appendChild(placeholder);
   const nowYear = new Date().getFullYear();
-  // default most-recent prior-year return
   for (let y = nowYear; y >= nowYear - 10; y--) {
     const opt = document.createElement('option');
     opt.value = String(y);
     opt.textContent = String(y);
-    if (y === nowYear - 1) opt.selected = true;
     sel.appendChild(opt);
   }
 })();
@@ -1029,7 +1041,8 @@ const lifeEventKinds = [
 function applyIntake() {
   const latest = parseInt(document.getElementById('intake-latest-year').value, 10);
   const count = parseInt(document.getElementById('intake-year-count').value, 10);
-  if (!latest || !count) { showToast('Pick a latest year and year count first.', true); return; }
+  if (!latest) { showToast('Please pick your most recent tax year first.', true); return; }
+  if (!count) { showToast('Please pick how many years back to organize.', true); return; }
 
   // Build years array — most recent first for UI, oldest first internally
   years = [];
