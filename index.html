@@ -238,12 +238,16 @@
 
   /* ── TRADE CARD GRID ── */
   .trades {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 1.25rem;
     padding: 0 0.5rem;
+  }
+
+  @media (max-width: 960px) {
+    .trades { grid-template-columns: repeat(2, 1fr); }
   }
 
   .trade-card {
@@ -447,8 +451,8 @@
 
   <div class="welcome-hero">
     <h1>Your business. Your stead. <em>Ready to file.</em></h1>
-    <p>Six trades, one clean workflow. Pick your door and we'll get your books organized, your years sorted, and your taxes ready to hand off.</p>
-    <div class="welcome-subline">✨ Daycare · Property mgmt · Cleaning · Yard · Automotive · General</div>
+    <p>Seven trades, one clean workflow. Pick your door and we'll get your books organized, your years sorted, and your taxes ready to hand off.</p>
+    <div class="welcome-subline">✨ Daycare · Property mgmt · Cleaning · Yard · Automotive · Events · General</div>
   </div>
 
   <div class="trades">
@@ -513,19 +517,23 @@
       <div class="waitlist-ok" id="ok-ad" style="display:none;">✓ You're on the list.</div>
     </div>
 
-    <!-- GENERAL — STUB -->
-    <div class="trade-card stub">
-      <span class="trade-badge soon">Coming soon</span>
+    <!-- EVENTS / PARTY PLANNER — LIVE (ev.html to come) -->
+    <a href="ev.html" class="trade-card live">
+      <span class="trade-badge live">Live</span>
+      <div class="trade-icon">🎈</div>
+      <div class="trade-name">Events &amp; Parties</div>
+      <div class="trade-who">Event coordinators, party planners, weddings, and celebrations. Venues, vendors, deposits, per-event P&amp;L.</div>
+      <div class="trade-action">Open organizer →</div>
+    </a>
+
+    <!-- GENERAL — LIVE (gn.html to come) -->
+    <a href="gn.html" class="trade-card live">
+      <span class="trade-badge live">Live</span>
       <div class="trade-icon">🧰</div>
       <div class="trade-name">General Small Biz</div>
-      <div class="trade-who">Schedule C catchall. Consultants, crafters, freelancers, and anyone not in the other five buckets.</div>
-      <div class="trade-action">Join the waitlist</div>
-      <div class="waitlist-field">
-        <input type="email" id="wait-gn" placeholder="your@email.com">
-        <button onclick="joinWaitlist('general', 'wait-gn', 'ok-gn')">Notify me</button>
-      </div>
-      <div class="waitlist-ok" id="ok-gn" style="display:none;">✓ You're on the list.</div>
-    </div>
+      <div class="trade-who">Schedule C catchall. Consultants, crafters, freelancers, and anyone not in the other six buckets.</div>
+      <div class="trade-action">Open organizer →</div>
+    </a>
 
   </div>
 

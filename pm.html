@@ -709,7 +709,7 @@
           This organizer walks you through four steps: <strong>Intake → Properties → Life Events → Worktables by Year</strong>.
         </p>
         <p style="font-size:0.9rem;line-height:1.6;color:var(--muted);margin-top:0.5rem;">
-          Fill out this page first. At the bottom, you'll pick <strong>which tax years you want to organize</strong> — anywhere from 2 to 10 years. Nothing gets built until you click <em>Apply Intake</em>.
+          Fill out this page first. Your worktables already cover the most recent <strong>10 tax years</strong> — no scope-picking needed. Fill in whatever years apply to you.
         </p>
       </div>
       <div class="card">
@@ -784,30 +784,9 @@
       </div>
 
       <div class="card" style="border-left:4px solid var(--accent);">
-        <div class="section-label">⚡ Pick Your Years</div>
+        <div class="section-label">⚡ Your 10-Year Window</div>
         <div class="note-box">
-          <strong>This is where you choose your scope.</strong> Pick your most recent tax year, then choose how many years back to organize. The IRS statute for unfiled returns generally reaches back <strong>6 years</strong>, but you can pick anywhere from 2 to 10.
-        </div>
-        <div class="form-row">
-          <div class="field">
-            <label>Most Recent Tax Year to Prepare</label>
-            <select id="intake-latest-year"></select>
-          </div>
-          <div class="field">
-            <label>How Many Years Back?</label>
-            <select id="intake-year-count">
-              <option value="">— Pick your range —</option>
-              <option value="2">2 years</option>
-              <option value="3">3 years</option>
-              <option value="4">4 years</option>
-              <option value="5">5 years</option>
-              <option value="6">6 years (IRS default)</option>
-              <option value="7">7 years</option>
-              <option value="8">8 years</option>
-              <option value="9">9 years</option>
-              <option value="10">10 years</option>
-            </select>
-          </div>
+          <strong>All 10 years are ready.</strong> Your worktables cover the most recent <strong>10 tax years</strong> automatically — no picking required. Fill in whatever years apply. Anything you don't need stays blank.
         </div>
         <div class="form-row">
           <div class="field">
@@ -853,7 +832,7 @@
             </select>
           </div>
         </div>
-        <button class="auth-btn" style="width:auto;padding:0.6rem 1.5rem;margin-top:0.5rem;" onclick="applyIntake()">Apply Intake & Build Worktables →</button>
+        <button class="auth-btn" style="width:auto;padding:0.6rem 1.5rem;margin-top:0.5rem;" onclick="showSection('properties')">Continue to Properties →</button>
       </div>
 
       <div class="card">
@@ -938,21 +917,28 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 let properties = [];     // [{id, nickname, address, type, acquired, sold, notes}]
 let lifeEvents = [];     // [{id, year, property_id, kind, amount, notes}]
-let years = [];          // filled after intake, most-recent first in UI
 
-// Populate latest-year dropdown — NO auto-select, user must pick
-(function initLatestYear() {
-  const sel = document.getElementById('intake-latest-year');
-  const placeholder = document.createElement('option');
-  placeholder.value = '';
-  placeholder.textContent = '— Pick your most recent year —';
-  sel.appendChild(placeholder);
-  const nowYear = new Date().getFullYear();
-  for (let y = nowYear; y >= nowYear - 10; y--) {
-    const opt = document.createElement('option');
-    opt.value = String(y);
-    opt.textContent = String(y);
-    sel.appendChild(opt);
+// ── ROLLING 10-YEAR WINDOW ──
+// Same pattern as dc.html. Ends at current calendar year.
+// Internal order: oldest to newest. UI displays newest first via [...years].reverse() in rebuildYearTabs.
+const CURRENT_YEAR = new Date().getFullYear();
+const WINDOW_SIZE = 10;
+let years = [];
+for (let y = CURRENT_YEAR - WINDOW_SIZE + 1; y <= CURRENT_YEAR; y++) {
+  years.push(String(y));
+}
+
+// Build tabs + sections immediately on page load — no intake step needed
+(function autoBuildWorktables() {
+  // Defer until DOM is ready in case script loads early
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      rebuildYearTabs();
+      rebuildYearSections();
+    });
+  } else {
+    rebuildYearTabs();
+    rebuildYearSections();
   }
 })();
 
@@ -1038,21 +1024,11 @@ const lifeEventKinds = [
 ];
 
 // ── INTAKE APPLY ──
+// ── LEGACY STUB ──
+// applyIntake is no longer called by the UI (year picker removed, 10-year window is automatic).
+// Kept as a no-op forwarder in case any old code paths reference it.
 function applyIntake() {
-  const latest = parseInt(document.getElementById('intake-latest-year').value, 10);
-  const count = parseInt(document.getElementById('intake-year-count').value, 10);
-  if (!latest) { showToast('Please pick your most recent tax year first.', true); return; }
-  if (!count) { showToast('Please pick how many years back to organize.', true); return; }
-
-  // Build years array — most recent first for UI, oldest first internally
-  years = [];
-  for (let i = 0; i < count; i++) years.push(String(latest - i));
-  years.reverse(); // oldest to newest internally
-
-  rebuildYearTabs();
-  rebuildYearSections();
   if (properties.length === 0) addProperty();
-  showToast('Worktables ready. Head to Properties →', false);
   showSection('properties');
 }
 
@@ -1521,7 +1497,7 @@ function collectAllData() {
 
   ['owner-name','owner-tin','owner-entity','owner-filing-status','owner-phone','owner-email','owner-address',
    'owner-state','owner-repro','owner-notes',
-   'intake-latest-year','intake-year-count','intake-1031','intake-sales','intake-depr-records','intake-software'
+   'intake-1031','intake-sales','intake-depr-records','intake-software'
   ].forEach(f => {
     const el = document.getElementById(f);
     if (el) data.intake[f] = el.value;
@@ -1592,15 +1568,17 @@ async function loadSavedData() {
       });
     }
 
-    // properties & life events (restore before rebuilding tabs)
+    // properties & life events (restore — rolling 10-year window is preset, don't overwrite)
     properties = Array.isArray(saved.properties) ? saved.properties : [];
     lifeEvents = Array.isArray(saved.lifeEvents) ? saved.lifeEvents : [];
-    years = Array.isArray(saved.years) ? saved.years : [];
 
-    if (years.length) {
-      rebuildYearTabs();
-      rebuildYearSections();
-    }
+    // years array is ALREADY populated with rolling 10-year window on page load.
+    // Do NOT overwrite from saved.years — that was the old variable-range model.
+    // Saved year data still hydrates fine because it keys on year string.
+
+    // Rebuild tabs + sections so they reflect current properties
+    rebuildYearTabs();
+    rebuildYearSections();
     renderProperties();
     renderLifeEvents();
 
@@ -1630,8 +1608,38 @@ async function loadSavedData() {
     }
 
     setSaveStatus('Data loaded ✓');
+
+    // ── AUTO-LAND LOGIC ──
+    // Land on the year with the most filled-in cells. Fall back to Intake.
+    autoLandOnBestYear(saved);
   } catch(e) {
     setSaveStatus('Could not load saved data.');
+  }
+}
+
+function autoLandOnBestYear(saved) {
+  if (!saved || !saved.yearData) return; // stay on Intake
+
+  let bestYear = null;
+  let bestScore = 0;
+  years.forEach(year => {
+    const propMap = saved.yearData[year];
+    if (!propMap) return;
+    let score = 0;
+    Object.values(propMap).forEach(lineMap => {
+      Object.values(lineMap).forEach(v => {
+        if (v === null || v === undefined || v === '' || v === 0) return;
+        score++;
+      });
+    });
+    if (score > bestScore) {
+      bestScore = score;
+      bestYear = year;
+    }
+  });
+
+  if (bestYear) {
+    showSection(bestYear);
   }
 }
 

@@ -952,7 +952,7 @@
   <div class="header">
     <div class="header-left">
       <h1>Keepstead</h1>
-      <p>Home Daycare Tax Organizer · 2022–2025</p>
+      <p>Home Daycare Tax Organizer · 10-Year Window</p>
     </div>
     <div class="header-right">
       <span class="user-pill" id="user-email-display"></span>
@@ -960,12 +960,9 @@
     </div>
   </div>
 
-  <div class="years-nav">
+  <div class="years-nav" id="years-nav">
     <button class="year-tab active" onclick="showSection('info')">Client Info</button>
-    <button class="year-tab" onclick="showSection('2022')">2022</button>
-    <button class="year-tab" onclick="showSection('2023')">2023</button>
-    <button class="year-tab" onclick="showSection('2024')">2024</button>
-    <button class="year-tab" onclick="showSection('2025')">2025</button>
+    <!-- year tabs inserted by JS -->
     <button class="year-tab" onclick="showSection('summary')">Summary</button>
   </div>
 
@@ -1077,20 +1074,17 @@
         </div>
       </div>
       <div class="submit-area">
-        <button class="btn-primary" onclick="showSection('2022')">Continue to 2022 →</button>
+        <button class="btn-primary" onclick="showSection(years[0])">Continue to First Year →</button>
       </div>
     </div>
 
-    <!-- YEAR SECTIONS -->
-    <div class="year-section" id="section-2022"></div>
-    <div class="year-section" id="section-2023"></div>
-    <div class="year-section" id="section-2024"></div>
-    <div class="year-section" id="section-2025"></div>
+    <!-- YEAR SECTIONS — inserted by JS, one per year in rolling 10-year window -->
+    <div id="year-sections-container"></div>
 
     <!-- SUMMARY -->
     <div class="year-section" id="section-summary">
       <div class="client-card">
-        <div class="section-label">Four-Year Overview</div>
+        <div class="section-label">Multi-Year Overview</div>
         <h2 style="font-family:'DM Serif Display',serif;font-size:1.4rem;margin-bottom:0.4rem;">Here's what we've got.</h2>
         <p style="color:var(--muted);font-size:0.88rem;margin-bottom:1.25rem;">Review and flag anything missing or needing a follow-up.</p>
         <div class="summary-grid" id="summary-grid"></div>
@@ -1120,7 +1114,42 @@ const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
-const years = ['2022','2023','2024','2025'];
+
+// ── ROLLING 10-YEAR WINDOW ──
+// Ends at current calendar year so the newest year is always available as a fresh empty tab.
+// In April 2026: window = 2017 → 2026. Gretchen's 2022–2025 data stays intact.
+const CURRENT_YEAR = new Date().getFullYear();
+const WINDOW_SIZE = 10;
+const years = [];
+for (let y = CURRENT_YEAR - WINDOW_SIZE + 1; y <= CURRENT_YEAR; y++) {
+  years.push(String(y));
+}
+
+// Inject year tabs between Client Info and Summary
+(function buildYearTabs() {
+  const nav = document.getElementById('years-nav');
+  if (!nav) return;
+  const summaryBtn = nav.querySelector('button:last-child'); // Summary button
+  years.forEach(year => {
+    const btn = document.createElement('button');
+    btn.className = 'year-tab';
+    btn.textContent = year;
+    btn.setAttribute('onclick', 'showSection(\'' + year + '\')');
+    nav.insertBefore(btn, summaryBtn);
+  });
+})();
+
+// Inject empty year-section containers into the container div
+(function buildYearSectionContainers() {
+  const container = document.getElementById('year-sections-container');
+  if (!container) return;
+  years.forEach(year => {
+    const div = document.createElement('div');
+    div.className = 'year-section';
+    div.id = 'section-' + year;
+    container.appendChild(div);
+  });
+})();
 
 // ── AUTH ──
 async function handleLogin() {
@@ -1541,7 +1570,7 @@ function showSection(id) {
   document.querySelectorAll('.year-tab').forEach(t => t.classList.remove('active'));
   const target = document.getElementById(`section-${id}`);
   if (target) target.classList.add('active');
-  const order = ['info','2022','2023','2024','2025','summary'];
+  const order = ['info', ...years, 'summary'];
   const idx = order.indexOf(id);
   const tabs = document.querySelectorAll('.year-tab');
   if (tabs[idx]) tabs[idx].classList.add('active');
@@ -1694,9 +1723,41 @@ async function loadSavedData() {
     setSaveStatus('Data loaded ✓');
     const saveBtn = document.querySelector('.btn-save');
     if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾 Save All'; saveBtn.style.background = 'var(--sage)'; }
+
+    // ── AUTO-LAND LOGIC ──
+    // Priority: most recently edited year (most data) → current tax year → client info.
+    // Current tax year = year being filed = last year in window (e.g., 2026 filing for calendar 2025 → lands on 2025 if present).
+    autoLandOnBestYear(saved);
   } catch(e) {
     setSaveStatus('Could not load saved data.');
   }
+}
+
+function autoLandOnBestYear(saved) {
+  if (!saved || !saved.years) return; // stay on Client Info if nothing saved
+
+  // Score each year by how much data is filled in
+  let bestYear = null;
+  let bestScore = 0;
+  years.forEach(year => {
+    const vals = saved.years[year];
+    if (!vals) return;
+    // Count non-empty values
+    let score = 0;
+    Object.values(vals).forEach(v => {
+      if (v === null || v === undefined || v === '' || v === false) return;
+      score++;
+    });
+    if (score > bestScore) {
+      bestScore = score;
+      bestYear = year;
+    }
+  });
+
+  if (bestYear) {
+    showSection(bestYear);
+  }
+  // If no year has data, stay on Client Info (default active section)
 }
 
 function setSaveStatus(msg) {
