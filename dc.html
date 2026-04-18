@@ -1168,10 +1168,41 @@ async function handleSignup() {
   else showAuthError('Check your email to confirm your account, then sign in.');
 }
 
+// ── WIPE ALL FORM DATA ──
+// Clears every input, textarea, select, checkbox, and auto-computed total
+// in both client-info and year sections. Also wipes in-memory receipt store.
+// Called on logout and on user-change so no ghost values linger in the DOM.
+function wipeAllFormData() {
+  // Wipe all text/number/email inputs and selects inside the app
+  document.querySelectorAll('#app input[type="text"], #app input[type="number"], #app input[type="email"], #app select, #app textarea').forEach(el => {
+    el.value = '';
+  });
+  // Uncheck every checkbox in the app
+  document.querySelectorAll('#app input[type="checkbox"]').forEach(el => {
+    el.checked = false;
+  });
+  // Reset auto-computed totals in the app
+  document.querySelectorAll('#app .quarter-total').forEach(el => {
+    el.textContent = '$0.00';
+  });
+  // Clear in-memory receipt calculator state
+  Object.keys(calcReceipts).forEach(k => delete calcReceipts[k]);
+  // Hide any CACFP fields that were toggled open
+  document.querySelectorAll('.cacfp-fields').forEach(el => el.classList.remove('visible'));
+  document.querySelectorAll('[id$="-no-cacfp"]').forEach(el => el.style.display = 'block');
+  // Reset section view back to Client Info
+  document.querySelectorAll('.year-section').forEach(s => s.classList.remove('active'));
+  const infoSec = document.getElementById('section-info');
+  if (infoSec) infoSec.classList.add('active');
+  document.querySelectorAll('.year-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+}
+
 async function handleLogout() {
   await sb.auth.signOut();
+  wipeAllFormData();
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
+  document.getElementById('user-email-display').textContent = '';
 }
 
 function showAuthError(msg) {
@@ -1185,15 +1216,25 @@ function switchAuthTab(tab) {
   document.getElementById('auth-error').textContent = '';
 }
 
+// Track last-seen user so we can detect user changes and wipe DOM before loading new data
+let lastSeenUserId = null;
+
 sb.auth.onAuthStateChange((event, session) => {
   if (session?.user) {
+    // If this is a different user than we last saw, wipe everything first
+    if (lastSeenUserId && lastSeenUserId !== session.user.id) {
+      wipeAllFormData();
+    }
+    lastSeenUserId = session.user.id;
     currentUser = session.user;
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     document.getElementById('user-email-display').textContent = session.user.email;
     loadSavedData();
   } else {
+    lastSeenUserId = null;
     currentUser = null;
+    wipeAllFormData();
     document.getElementById('auth-screen').style.display = 'flex';
     document.getElementById('app').style.display = 'none';
   }
@@ -1675,6 +1716,9 @@ async function saveAll() {
 
 async function loadSavedData() {
   if (!currentUser) return;
+  // Belt-and-suspenders: always wipe DOM before loading. Cheap, guarantees
+  // no ghost values from a prior session can ever leak into the current view.
+  wipeAllFormData();
   setSaveStatus('Loading...');
   try {
     const { data, error } = await sb.from('tax_organizer_submissions')

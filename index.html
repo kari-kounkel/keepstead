@@ -29,7 +29,7 @@
     min-height: 100vh;
   }
 
-  /* ── AUTH SCREEN (matches dc.html exactly) ── */
+  /* ── AUTH SCREEN ── */
   .auth-screen {
     min-height: 100vh;
     display: flex;
@@ -236,7 +236,7 @@
     letter-spacing: 0.02em;
   }
 
-  /* ── TRADE CARD GRID ── */
+  /* ── TRADE CARDS ── */
   .trades {
     max-width: 900px;
     margin: 0 auto;
@@ -259,15 +259,14 @@
     color: var(--ink);
   }
 
-  .trade-card.live:hover {
+  .trade-card:hover {
     border-color: var(--accent);
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(26, 26, 46, 0.08);
   }
 
-  .trade-card.stub {
+  .trade-card.soon {
     background: var(--warm);
-    cursor: default;
   }
 
   .trade-badge {
@@ -322,48 +321,8 @@
     color: var(--accent);
   }
 
-  .trade-card.stub .trade-action {
+  .trade-card.soon .trade-action {
     color: var(--muted);
-    font-style: italic;
-  }
-
-  .waitlist-field {
-    margin-top: 0.75rem;
-    display: flex;
-    gap: 0.4rem;
-  }
-
-  .waitlist-field input {
-    flex: 1;
-    padding: 0.5rem 0.7rem;
-    border: 1.5px solid var(--border);
-    border-radius: 6px;
-    background: white;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.8rem;
-    color: var(--ink);
-  }
-
-  .waitlist-field button {
-    padding: 0.5rem 0.9rem;
-    background: var(--ink);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.78rem;
-    font-weight: 500;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-
-  .waitlist-field button:hover { background: #2a2a40; }
-
-  .waitlist-ok {
-    font-size: 0.78rem;
-    color: var(--sage);
-    margin-top: 0.5rem;
-    font-weight: 500;
   }
 
   /* ── FOOTER ── */
@@ -447,73 +406,31 @@
   <div class="welcome-hero">
     <h1>Your business. Your stead. <em>Ready to file.</em></h1>
     <p>Seven trades, one clean workflow. Pick your door and we'll get your books organized, your years sorted, and your taxes ready to hand off.</p>
-    <div class="welcome-subline">✨ Daycare · Property mgmt · Cleaning · Yard · Automotive · Events · General</div>
+    <div class="welcome-subline">✨ Automotive · Cleaning · Events · General · Home Daycare · Property Mgmt · Yard</div>
   </div>
 
   <div class="trades">
 
-    <!-- DAYCARE — LIVE -->
-    <a href="dc.html" class="trade-card live">
-      <span class="trade-badge live">Live</span>
-      <div class="trade-icon">🧸</div>
-      <div class="trade-name">Home Daycare</div>
-      <div class="trade-who">Licensed in-home childcare. Time/Space %, CACFP, tuition, subsidies, and Schedule C ready.</div>
-      <div class="trade-action">Open organizer →</div>
-    </a>
-
-    <!-- PROPERTY MGMT — LIVE (pm.html ships next session) -->
-    <a href="pm.html" class="trade-card live">
-      <span class="trade-badge live">Live</span>
-      <div class="trade-icon">🏠</div>
-      <div class="trade-name">Property Management</div>
-      <div class="trade-who">Landlords and rental owners. Per-property income, depreciation, 1031 exchanges, up to 10 years back.</div>
-      <div class="trade-action">Open organizer →</div>
-    </a>
-
-    <!-- CLEANING — STUB -->
-    <div class="trade-card stub">
-      <span class="trade-badge soon">Coming soon</span>
-      <div class="trade-icon">🧽</div>
-      <div class="trade-name">Cleaning Services</div>
-      <div class="trade-who">Residential and commercial cleaners. Supplies, mileage, uniforms, and job-site tracking.</div>
-      <div class="trade-action">Join the waitlist</div>
-      <div class="waitlist-field">
-        <input type="email" id="wait-cl" placeholder="your@email.com">
-        <button onclick="joinWaitlist('cleaning', 'wait-cl', 'ok-cl')">Notify me</button>
-      </div>
-      <div class="waitlist-ok" id="ok-cl" style="display:none;">✓ You're on the list.</div>
-    </div>
-
-    <!-- YARD — STUB -->
-    <div class="trade-card stub">
-      <span class="trade-badge soon">Coming soon</span>
-      <div class="trade-icon">🌿</div>
-      <div class="trade-name">Yard &amp; Landscaping</div>
-      <div class="trade-who">Lawn care, landscaping, snow removal. Equipment depreciation, seasonal income, and fuel logs.</div>
-      <div class="trade-action">Join the waitlist</div>
-      <div class="waitlist-field">
-        <input type="email" id="wait-yd" placeholder="your@email.com">
-        <button onclick="joinWaitlist('yard', 'wait-yd', 'ok-yd')">Notify me</button>
-      </div>
-      <div class="waitlist-ok" id="ok-yd" style="display:none;">✓ You're on the list.</div>
-    </div>
-
-    <!-- AUTOMOTIVE & DETAIL — STUB -->
-    <div class="trade-card stub">
+    <!-- AUTOMOTIVE & DETAIL -->
+    <a href="au.html" class="trade-card soon">
       <span class="trade-badge soon">Coming soon</span>
       <div class="trade-icon">🚗</div>
       <div class="trade-name">Automotive &amp; Detail</div>
       <div class="trade-who">Window tint, wraps, detailing, auto glass, and small automotive shops. Parts, labor, supplies, and mobile mileage.</div>
-      <div class="trade-action">Join the waitlist</div>
-      <div class="waitlist-field">
-        <input type="email" id="wait-ad" placeholder="your@email.com">
-        <button onclick="joinWaitlist('automotive', 'wait-ad', 'ok-ad')">Notify me</button>
-      </div>
-      <div class="waitlist-ok" id="ok-ad" style="display:none;">✓ You're on the list.</div>
-    </div>
+      <div class="trade-action">Open organizer →</div>
+    </a>
 
-    <!-- EVENTS / PARTY PLANNER — LIVE (ev.html to come) -->
-    <a href="ev.html" class="trade-card live">
+    <!-- CLEANING SERVICES -->
+    <a href="cl.html" class="trade-card soon">
+      <span class="trade-badge soon">Coming soon</span>
+      <div class="trade-icon">🧽</div>
+      <div class="trade-name">Cleaning Services</div>
+      <div class="trade-who">Residential and commercial cleaners. Supplies, mileage, uniforms, and job-site tracking.</div>
+      <div class="trade-action">Open organizer →</div>
+    </a>
+
+    <!-- EVENTS & PARTIES -->
+    <a href="ev.html" class="trade-card">
       <span class="trade-badge live">Live</span>
       <div class="trade-icon">🎈</div>
       <div class="trade-name">Events &amp; Parties</div>
@@ -521,12 +438,39 @@
       <div class="trade-action">Open organizer →</div>
     </a>
 
-    <!-- GENERAL — LIVE (gn.html to come) -->
-    <a href="gn.html" class="trade-card live">
+    <!-- GENERAL SMALL BIZ -->
+    <a href="gn.html" class="trade-card">
       <span class="trade-badge live">Live</span>
       <div class="trade-icon">🧰</div>
       <div class="trade-name">General Small Biz</div>
       <div class="trade-who">Schedule C catchall. Consultants, crafters, freelancers, and anyone not in the other six buckets.</div>
+      <div class="trade-action">Open organizer →</div>
+    </a>
+
+    <!-- HOME DAYCARE -->
+    <a href="dc.html" class="trade-card">
+      <span class="trade-badge live">Live</span>
+      <div class="trade-icon">🧸</div>
+      <div class="trade-name">Home Daycare</div>
+      <div class="trade-who">Licensed in-home childcare. Time/Space %, CACFP, tuition, subsidies, and Schedule C ready.</div>
+      <div class="trade-action">Open organizer →</div>
+    </a>
+
+    <!-- PROPERTY MANAGEMENT -->
+    <a href="pm.html" class="trade-card">
+      <span class="trade-badge live">Live</span>
+      <div class="trade-icon">🏠</div>
+      <div class="trade-name">Property Management</div>
+      <div class="trade-who">Landlords and rental owners. Per-property income, depreciation, 1031 exchanges, up to 10 years back.</div>
+      <div class="trade-action">Open organizer →</div>
+    </a>
+
+    <!-- YARD & LANDSCAPING -->
+    <a href="yd.html" class="trade-card soon">
+      <span class="trade-badge soon">Coming soon</span>
+      <div class="trade-icon">🌿</div>
+      <div class="trade-name">Yard &amp; Landscaping</div>
+      <div class="trade-who">Lawn care, landscaping, snow removal. Equipment depreciation, seasonal income, and fuel logs.</div>
       <div class="trade-action">Open organizer →</div>
     </a>
 
@@ -586,30 +530,6 @@ async function handleLogout() {
 
 function showAuthError(msg) {
   document.getElementById('auth-error').textContent = msg;
-}
-
-// ── WAITLIST ──
-async function joinWaitlist(trade, inputId, okId) {
-  const email = document.getElementById(inputId).value.trim();
-  if (!email || !email.includes('@')) {
-    alert('Please enter a valid email.');
-    return;
-  }
-  const { error } = await sb.from('trade_waitlist').insert({
-    trade: trade,
-    email: email,
-    user_id: currentUser ? currentUser.id : null
-  });
-  if (error) {
-    alert('Sorry, something went wrong. Try again in a moment.');
-    console.error(error);
-    return;
-  }
-  document.getElementById(inputId).value = '';
-  document.getElementById(okId).style.display = 'block';
-  setTimeout(() => {
-    document.getElementById(okId).style.display = 'none';
-  }, 4000);
 }
 
 // ── SESSION ──

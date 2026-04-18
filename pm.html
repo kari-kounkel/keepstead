@@ -959,10 +959,42 @@ async function handleSignup() {
   else showAuthError('Check your email to confirm your account, then sign in.');
 }
 
+// ── WIPE ALL FORM DATA ──
+// Clears every input, property, life event, and dynamic year section in the app.
+// Called on logout and on user-change so no ghost values from a prior session
+// can leak into a new user's view.
+function wipeAllFormData() {
+  // Empty in-memory state
+  properties.length = 0;
+  lifeEvents.length = 0;
+  // Wipe all text/number/email inputs and selects inside the app
+  document.querySelectorAll('#app input[type="text"], #app input[type="number"], #app input[type="email"], #app input[type="date"], #app select, #app textarea').forEach(el => {
+    el.value = '';
+  });
+  // Uncheck every checkbox in the app
+  document.querySelectorAll('#app input[type="checkbox"]').forEach(el => {
+    el.checked = false;
+  });
+  // Re-render dynamic panels so old property rows / life events / year worktables disappear
+  try { renderProperties(); } catch(e) {}
+  try { renderLifeEvents(); } catch(e) {}
+  try { rebuildYearSections(); } catch(e) {}
+  // Reset section view back to Intake
+  document.querySelectorAll('.year-section').forEach(s => s.classList.remove('active'));
+  const intakeSec = document.getElementById('section-intake');
+  if (intakeSec) intakeSec.classList.add('active');
+  document.querySelectorAll('.year-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+  // Clear any report output
+  const reportEl = document.getElementById('report-output');
+  if (reportEl) { reportEl.innerHTML = ''; reportEl.style.display = 'none'; }
+}
+
 async function handleLogout() {
   await sb.auth.signOut();
+  wipeAllFormData();
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
+  document.getElementById('user-email-display').textContent = '';
 }
 
 function showAuthError(msg) {
@@ -976,15 +1008,25 @@ function switchAuthTab(tab) {
   document.getElementById('auth-error').textContent = '';
 }
 
+// Track last-seen user so we can detect user changes and wipe DOM before loading new data
+let lastSeenUserId = null;
+
 sb.auth.onAuthStateChange((event, session) => {
   if (session?.user) {
+    // If this is a different user than we last saw, wipe everything first
+    if (lastSeenUserId && lastSeenUserId !== session.user.id) {
+      wipeAllFormData();
+    }
+    lastSeenUserId = session.user.id;
     currentUser = session.user;
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     document.getElementById('user-email-display').textContent = session.user.email;
     loadSavedData();
   } else {
+    lastSeenUserId = null;
     currentUser = null;
+    wipeAllFormData();
     document.getElementById('auth-screen').style.display = 'flex';
     document.getElementById('app').style.display = 'none';
   }
@@ -1551,6 +1593,9 @@ async function saveAll() {
 
 async function loadSavedData() {
   if (!currentUser) return;
+  // Belt-and-suspenders: always wipe DOM before loading. Cheap, guarantees
+  // no ghost values from a prior session can ever leak into the current view.
+  wipeAllFormData();
   setSaveStatus('Loading...');
   try {
     const { data, error } = await sb.from('pm_organizer_submissions')
