@@ -17,8 +17,10 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   tier          text NOT NULL DEFAULT 'free'
                 CHECK (tier IN ('free','paid_single','paid_bundle','paid_unlimited')),
   signup_date   timestamptz NOT NULL DEFAULT now(),
-  last_login    timestamptz
+  last_login    timestamptz,
+  last_organizer text  -- trade code (dc, pm, etc.) — used to auto-surface Resume shortcut on home
 );
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS last_organizer text;
 
 CREATE INDEX IF NOT EXISTS idx_profiles_email ON public.profiles(email);
 

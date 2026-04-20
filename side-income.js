@@ -605,15 +605,30 @@
     const sb = window.sb;
     if (!sb) return;
     sb.auth.getSession().then(({ data: { session } }) => {
-      if (session) load();
+      if (session) { load(); stampLastOrganizer(); }
     });
     sb.auth.onAuthStateChange((_ev, session) => {
-      if (session) load();
+      if (session) { load(); stampLastOrganizer(); }
       else {
         // Wipe our inputs on sign-out — privacy.
         hydrate({});
       }
     });
+  }
+
+  // Stamp the current trade on profiles.last_organizer so index.html can
+  // surface a "Resume" shortcut next time this user logs in.
+  async function stampLastOrganizer() {
+    const sb = window.sb;
+    const trade = window.KEEPSTEAD_TRADE_CODE;
+    if (!sb || !trade) return;
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) return;
+      await sb.from('profiles')
+        .update({ last_organizer: trade })
+        .eq('id', session.user.id);
+    } catch (e) { /* non-critical; swallow */ }
   }
 
   if (document.readyState === 'loading') {

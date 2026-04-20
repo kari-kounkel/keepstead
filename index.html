@@ -345,6 +345,58 @@
   }
   .admin-link:hover { background: var(--gold); color: var(--ink); }
 
+  /* ── RESUME CARD (auto-shown when user has a last_organizer) ── */
+  .resume-wrap {
+    max-width: 540px;
+    margin: 0 auto 1.5rem;
+    padding: 0 1.5rem;
+    text-align: center;
+  }
+  .resume-card {
+    background: var(--ink);
+    color: var(--cream);
+    border-radius: 16px;
+    padding: 1.5rem 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-left: 4px solid var(--gold);
+    box-shadow: 0 8px 24px rgba(26, 26, 46, 0.12);
+    flex-wrap: wrap;
+    text-align: left;
+  }
+  .resume-eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.3rem;
+  }
+  .resume-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.35rem;
+    color: var(--cream);
+  }
+  .resume-btn {
+    padding: 0.7rem 1.4rem;
+    background: var(--gold);
+    color: var(--ink);
+    border: none;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .resume-btn:hover { background: #e4b953; transform: translateY(-1px); }
+  .resume-or {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 0.8rem;
+  }
+
   /* ── MY REQUESTS ── */
   .my-requests {
     max-width: 720px;
@@ -466,6 +518,16 @@
     <div class="subline">Pick your trade to get started — we save your work year over year.</div>
   </div>
 
+  <!-- ── RESUME CARD — auto-shown if profile.last_organizer is set ── -->
+  <div class="resume-wrap" id="resume-wrap" style="display:none;">
+    <div class="resume-card">
+      <div class="resume-eyebrow">Pick up where you left off</div>
+      <div class="resume-title" id="resume-title">Daycare organizer</div>
+      <button class="resume-btn" id="resume-btn" onclick="resumeOrganizer()">Resume →</button>
+    </div>
+    <div class="resume-or">or pick a different one below</div>
+  </div>
+
   <div class="picker">
     <div class="picker-card">
       <label class="picker-label" for="trade-select">What kind of business do you run?</label>
@@ -525,6 +587,25 @@ const REPORT_LABELS = {
   bundle_single:    'Bundle — single trade',
   bundle_unlimited: 'Bundle — unlimited trades'
 };
+
+const TRADE_LABEL_FULL = {
+  au: 'Auto Repair & Mechanics',
+  cl: 'Cleaning Services',
+  cr: 'Creative & Crafters',
+  dc: 'Daycare / Home Childcare',
+  dw: 'Dog Walkers / Pet Sitters',
+  ev: 'Events & Parties',
+  fn: 'Fitness & Wellness',
+  gn: 'General Small Biz',
+  pm: 'Property Management',
+  rs: 'Resellers',
+  tp: 'Tax Preparers / Bookkeepers',
+  tr: 'Trades & Contractors',
+  w2: 'W-2 / 1099 Wage Earner',
+  yd: 'Yard & Landscaping'
+};
+
+let lastOrganizerCode = null;
 const STATUS_LABELS = {
   pending: 'Awaiting Kari',
   in_progress: 'Kari is working on it',
@@ -599,8 +680,35 @@ function showWelcome() {
   }
   // Stamp last_login (fire-and-forget; ignore if RPC not yet deployed)
   sb.rpc('touch_last_login').then(() => {}).catch(() => {});
-  // Load My Requests
+  // Load Resume shortcut + My Requests
+  loadResumeShortcut();
   loadMyRequests();
+}
+
+async function loadResumeShortcut() {
+  try {
+    const { data, error } = await sb
+      .from('profiles')
+      .select('last_organizer')
+      .eq('id', currentUser.id)
+      .maybeSingle();
+    if (error || !data || !data.last_organizer) {
+      document.getElementById('resume-wrap').style.display = 'none';
+      return;
+    }
+    const code = data.last_organizer;
+    const label = TRADE_LABEL_FULL[code] || code;
+    lastOrganizerCode = code;
+    document.getElementById('resume-title').textContent = label + ' organizer';
+    document.getElementById('resume-wrap').style.display = 'block';
+  } catch (e) {
+    document.getElementById('resume-wrap').style.display = 'none';
+  }
+}
+
+function resumeOrganizer() {
+  if (!lastOrganizerCode) return;
+  window.location.href = lastOrganizerCode + '.html';
 }
 
 async function loadMyRequests() {
@@ -644,10 +752,12 @@ sb.auth.onAuthStateChange((event, session) => {
     showWelcome();
   } else {
     currentUser = null;
+    lastOrganizerCode = null;
     // Privacy: clear any per-user DOM before re-showing auth
     document.getElementById('admin-link').style.display = 'none';
     document.getElementById('my-requests').style.display = 'none';
     document.getElementById('requests-list').innerHTML = '';
+    document.getElementById('resume-wrap').style.display = 'none';
     showAuth();
   }
 });

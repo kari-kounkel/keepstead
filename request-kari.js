@@ -487,7 +487,10 @@
       const tradeCode = window.KEEPSTEAD_TRADE_CODE || 'unknown';
 
       const { data, error: fnErr } = await sb.functions.invoke('create-checkout-session', {
-        body: {
+  headers: {
+    Authorization: 'Bearer ' + session.access_token
+  },
+  body: {
           report_type: product.key,
           trade_code: tradeCode,
           years_ordered: yearsOrdered,
