@@ -52,14 +52,22 @@
         font-size: 0.9rem; color: #7a6f65; margin-bottom: 1rem; line-height: 1.5;
       }
       #kk-si-section .kk-si-yearbar {
-        display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem;
+        display: flex; gap: 0.5rem; align-items: center;
+        flex-wrap: wrap; margin-bottom: 1rem;
+        font-size: 0.85rem; color: #7a6f65;
       }
-      #kk-si-section .kk-si-year-btn {
-        padding: 0.35rem 0.85rem; border: 1.5px solid #d9cfc4; border-radius: 999px;
-        background: transparent; font-family: inherit; font-size: 0.82rem;
-        color: #7a6f65; cursor: pointer;
+      .kk-year-select, #kk-si-section .kk-si-year-select {
+        padding: 0.4rem 2.4rem 0.4rem 1rem;
+        border: 2px solid #c84b31; border-radius: 999px;
+        background: #c84b31; color: white;
+        font-family: inherit; font-size: 0.88rem; font-weight: 600;
+        cursor: pointer; appearance: none; -webkit-appearance: none;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='white' d='M6 8L0 0h12z'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
       }
-      #kk-si-section .kk-si-year-btn.active { background: #c84b31; border-color: #c84b31; color: white; }
+      .kk-year-select:focus, #kk-si-section .kk-si-year-select:focus { outline: none; }
+      .kk-year-select option, #kk-si-section .kk-si-year-select option { color: #1a1a2e; background: white; }
 
       #kk-si-section .kk-si-year-panel { display: none; }
       #kk-si-section .kk-si-year-panel.active { display: block; }
@@ -268,16 +276,21 @@
     if (summarySec) container.insertBefore(sec, summarySec);
     else container.appendChild(sec);
 
-    // Year bar
+    // Year picker — dropdown, newest first
     const bar = document.getElementById('kk-si-yearbar');
-    YEARS.slice().reverse().forEach((y, idx) => {
-      const btn = document.createElement('button');
-      btn.className = 'kk-si-year-btn' + (idx === 0 ? ' active' : '');
-      btn.type = 'button';
-      btn.textContent = y;
-      btn.onclick = () => switchYear(y);
-      bar.appendChild(btn);
+    bar.appendChild(document.createTextNode('Tax year:'));
+    const innerSelect = document.createElement('select');
+    innerSelect.className = 'kk-si-year-select';
+    innerSelect.setAttribute('aria-label', 'Tax year');
+    YEARS.slice().reverse().forEach(y => {
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = y;
+      innerSelect.appendChild(opt);
     });
+    innerSelect.value = YEARS[YEARS.length - 1];
+    innerSelect.addEventListener('change', () => switchYear(innerSelect.value));
+    bar.appendChild(innerSelect);
     // Show newest year
     switchYear(YEARS[YEARS.length - 1]);
 
@@ -291,7 +304,12 @@
   function addNavTab() {
     const nav = document.getElementById('years-nav') || document.querySelector('.years-nav');
     if (!nav) return;
-    // Find Summary button — insert our tab before it.
+
+    // (1) Replace the row of year-buttons with a single dropdown, newest first.
+    transformYearsToDropdown(nav);
+
+    // (2) Add a "Wages & 1099s" tab before Summary so each organizer's
+    //     existing showSection() picks it up.
     const summaryBtn = Array.from(nav.querySelectorAll('button'))
       .find(b => /summary/i.test(b.textContent));
     const tab = document.createElement('button');
@@ -303,13 +321,43 @@
     else nav.appendChild(tab);
   }
 
+  function transformYearsToDropdown(nav) {
+    const yearBtns = Array.from(nav.querySelectorAll('button')).filter(b =>
+      /^\d{4}$/.test((b.textContent || '').trim())
+    );
+    if (!yearBtns.length) return;
+    const years = yearBtns.map(b => b.textContent.trim());
+    const activeBtn = yearBtns.find(b => b.classList.contains('active'));
+    const activeYear = activeBtn ? activeBtn.textContent.trim() : years[years.length - 1];
+
+    const select = document.createElement('select');
+    select.className = 'kk-year-select';
+    select.setAttribute('aria-label', 'Tax year');
+    // Newest first
+    years.slice().reverse().forEach(y => {
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = y;
+      if (y === activeYear) opt.selected = true;
+      select.appendChild(opt);
+    });
+    select.addEventListener('change', () => {
+      const y = select.value;
+      if (!y) return;
+      if (typeof window.showSection === 'function') window.showSection(y);
+    });
+
+    // Insert in place of the first year button; remove all year buttons.
+    yearBtns[0].parentNode.insertBefore(select, yearBtns[0]);
+    yearBtns.forEach(b => b.remove());
+  }
+
   function switchYear(year) {
     document.querySelectorAll('#kk-si-section .kk-si-year-panel').forEach(p =>
       p.classList.toggle('active', p.id === 'kk-si-panel-' + year)
     );
-    document.querySelectorAll('#kk-si-section .kk-si-year-btn').forEach(b =>
-      b.classList.toggle('active', b.textContent.trim() === year)
-    );
+    const sel = document.querySelector('#kk-si-section .kk-si-year-select');
+    if (sel && sel.value !== year) sel.value = year;
   }
 
   function wireBannerListeners() {
