@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keepstead™ · Admin</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="author" content="CARES Consulting, Inc. & Kari Hoglund Kounkel">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --cream: #faf7f2;
+    --warm: #f5ede0;
+    --accent: #c84b31;
+    --gold: #d4a843;
+    --sage: #5a7a5e;
+    --border: #d9cfc4;
+    --muted: #7a6f65;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+  .gate {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ink);
+    color: var(--cream);
+    padding: 2rem;
+    text-align: center;
+  }
+  .gate-box {
+    background: var(--cream);
+    color: var(--ink);
+    padding: 2rem 2.5rem;
+    border-radius: 16px;
+    max-width: 420px;
+  }
+  .gate-box h1 { font-family: 'DM Serif Display', serif; font-size: 1.6rem; margin-bottom: 0.5rem; }
+  .gate-box p { font-size: 0.9rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.5; }
+  .gate-box a { color: var(--accent); text-decoration: none; font-weight: 600; }
+
+  .admin { display: none; }
+  .admin.active { display: block; }
+
+  header.topbar {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 1.2rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .brand { font-family: 'DM Serif Display', serif; font-size: 1.5rem; }
+  .brand small { font-family: 'DM Sans', sans-serif; font-size: 0.7rem; color: var(--gold); letter-spacing: 0.15em; margin-left: 0.5rem; text-transform: uppercase; }
+  .user-strip { display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; color: #a89e94; }
+  .user-strip button {
+    padding: 0.35rem 0.85rem;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 0.78rem;
+    color: #a89e94;
+    cursor: pointer;
+  }
+  .user-strip button:hover { color: white; border-color: white; }
+
+  .tabs {
+    display: flex;
+    gap: 0.4rem;
+    padding: 1rem 2rem 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--cream);
+    flex-wrap: wrap;
+  }
+  .tab {
+    padding: 0.7rem 1.1rem;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+
+  main { max-width: 1400px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  h2.section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+    color: var(--ink);
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .toolbar input[type="text"], .toolbar select {
+    padding: 0.55rem 0.8rem;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    background: white;
+    color: var(--ink);
+  }
+  .toolbar input[type="text"] { min-width: 260px; }
+  .toolbar .count {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-left: auto;
+  }
+
+  table.data {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 0.88rem;
+  }
+  table.data th, table.data td {
+    padding: 0.7rem 0.85rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  table.data th {
+    background: var(--warm);
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  table.data th:hover { background: #efe5d3; }
+  table.data tr:last-child td { border-bottom: none; }
+  table.data tr.expandable { cursor: pointer; }
+  table.data tr.expandable:hover { background: var(--warm); }
+  table.data tr.expanded-row td {
+    background: #fbf7ef;
+    padding: 1rem 1rem 1.2rem;
+  }
+  table.data .chip {
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    font-size: 0.72rem;
+    border-radius: 999px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .chip.free   { background: #efe5d3; color: var(--muted); }
+  .chip.paid_single,
+  .chip.paid_bundle,
+  .chip.paid_unlimited { background: #d3e4d6; color: var(--sage); }
+
+  .chip.pending     { background: #fdebc4; color: #8a6a00; }
+  .chip.in_progress { background: #ffe0cc; color: #b14800; }
+  .chip.done        { background: #d3e4d6; color: var(--sage); }
+  .chip.cancelled   { background: #e8d9d3; color: var(--muted); }
+
+  button.action {
+    padding: 0.35rem 0.7rem;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.78rem;
+    color: var(--ink);
+    cursor: pointer;
+    margin-right: 0.3rem;
+  }
+  button.action:hover { background: var(--warm); }
+  button.action.danger { color: var(--accent); border-color: var(--accent); }
+  button.action.primary { background: var(--accent); color: white; border-color: var(--accent); }
+  button.action.primary:hover { background: #a83c27; }
+
+  .status-select {
+    padding: 0.3rem 0.5rem;
+    font-family: inherit;
+    font-size: 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .stat {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.1rem 1.2rem;
+  }
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+  }
+  .stat-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+    color: var(--ink);
+  }
+  .stat-sub { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; }
+
+  .loading {
+    padding: 2rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .empty {
+    padding: 2rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.9rem;
+    background: white;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: var(--ink);
+    color: var(--cream);
+    padding: 0.8rem 1.2rem;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.25s;
+    pointer-events: none;
+    z-index: 999;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.err { background: var(--accent); }
+
+  details.detail-block {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    margin-top: 0.5rem;
+  }
+  details.detail-block summary {
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  details.detail-block pre {
+    font-family: 'SF Mono', Consolas, monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    background: var(--cream);
+    padding: 0.6rem;
+    border-radius: 6px;
+    margin-top: 0.5rem;
+    overflow: auto;
+    max-height: 300px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ── GATE (shown while checking auth or for non-admin) ── -->
+<div class="gate" id="gate">
+  <div class="gate-box">
+    <h1 id="gate-title">Checking access…</h1>
+    <p id="gate-msg">One moment.</p>
+    <p id="gate-action" style="display:none;"><a href="index.html">← Back to Keepstead</a></p>
+  </div>
+</div>
+
+<!-- ── ADMIN APP ── -->
+<div class="admin" id="admin">
+
+  <header class="topbar">
+    <div class="brand">Keepstead™ <small>Admin</small></div>
+    <div class="user-strip">
+      <span id="admin-email"></span>
+      <button onclick="handleLogout()">Sign Out</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-panel="users">Users</button>
+    <button class="tab" data-panel="requests">Completion Requests</button>
+    <button class="tab" data-panel="revenue">Revenue</button>
+    <button class="tab" data-panel="usage">Trade Usage</button>
+  </nav>
+
+  <main>
+
+    <!-- ── USERS ── -->
+    <section class="panel active" id="panel-users">
+      <h2 class="section-title">Users</h2>
+      <div class="toolbar">
+        <input type="text" id="user-search" placeholder="Search email…" oninput="renderUsers()">
+        <select id="user-tier-filter" onchange="renderUsers()">
+          <option value="">All tiers</option>
+          <option value="free">Free</option>
+          <option value="paid_single">Paid — single</option>
+          <option value="paid_bundle">Paid — bundle</option>
+          <option value="paid_unlimited">Paid — unlimited</option>
+        </select>
+        <span class="count" id="user-count"></span>
+      </div>
+      <div id="users-wrap">
+        <div class="loading">Loading users…</div>
+      </div>
+    </section>
+
+    <!-- ── COMPLETION REQUESTS ── -->
+    <section class="panel" id="panel-requests">
+      <h2 class="section-title">Completion Requests Inbox</h2>
+      <div class="toolbar">
+        <select id="req-status-filter" onchange="renderRequests()">
+          <option value="open">Open (pending + in progress)</option>
+          <option value="pending">Pending</option>
+          <option value="in_progress">In progress</option>
+          <option value="done">Done</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="">All</option>
+        </select>
+        <input type="text" id="req-search" placeholder="Search email or trade…" oninput="renderRequests()">
+        <span class="count" id="req-count"></span>
+      </div>
+      <div id="requests-wrap">
+        <div class="loading">Loading requests…</div>
+      </div>
+    </section>
+
+    <!-- ── REVENUE ── -->
+    <section class="panel" id="panel-revenue">
+      <h2 class="section-title">Revenue Snapshot</h2>
+      <div class="stat-grid" id="revenue-stats">
+        <div class="loading" style="grid-column: 1/-1;">Loading…</div>
+      </div>
+      <h3 style="font-family:'DM Serif Display',serif;font-size:1.2rem;margin:1.5rem 0 0.75rem;">Revenue by SKU</h3>
+      <div id="sku-breakdown"><div class="loading">Loading…</div></div>
+    </section>
+
+    <!-- ── TRADE USAGE ── -->
+    <section class="panel" id="panel-usage">
+      <h2 class="section-title">Trade Usage</h2>
+      <div id="usage-wrap"><div class="loading">Loading…</div></div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// SUPABASE + CONFIG
+// ══════════════════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://fufhjraudksavfncpdrm.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1ZmhqcmF1ZGtzYXZmbmNwZHJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1OTE3MDYsImV4cCI6MjA4NjE2NzcwNn0.JRjvoMM2Q2bFJtggzsOGW0x1GO3L4JpNF2zt3BqA4Ug';
+const ADMIN_EMAIL = 'kari@karikounkel.com';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const TRADE_LABELS = {
+  au: 'Auto Repair', cl: 'Cleaning', cr: 'Creative', dc: 'Daycare',
+  dw: 'Dog Walking', ev: 'Events', fn: 'Fitness', gn: 'General',
+  pm: 'Property Mgmt', rs: 'Resellers', tp: 'Tax Prep', tr: 'Trades',
+  yd: 'Yard', w2: 'W-2 / 1099'
+};
+
+const REPORT_LABELS = {
+  prep_worksheet:    'Preparer Worksheet',
+  tax_reference:     'Tax Reference Doc',
+  bundle_single:     'Bundle (single trade)',
+  bundle_unlimited:  'Bundle (unlimited)'
+};
+
+// ══════════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════════
+let currentUser = null;
+let allUsers = [];
+let allRequests = [];
+let userSort = { col: 'signup_date', dir: 'desc' };
+
+// ══════════════════════════════════════════════════════════════════
+// AUTH GATE
+// ══════════════════════════════════════════════════════════════════
+async function bootstrap() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    showGateDenied('Please sign in', 'This page is admin-only. Sign in at Keepstead first.');
+    return;
+  }
+  currentUser = session.user;
+  if ((session.user.email || '').toLowerCase() !== ADMIN_EMAIL) {
+    // Redirect non-admins straight back to the main app.
+    window.location.replace('index.html');
+    return;
+  }
+  // Enter admin view
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('admin').classList.add('active');
+  document.getElementById('admin-email').textContent = session.user.email;
+
+  // Wire tabs
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => switchPanel(btn.dataset.panel));
+  });
+
+  await Promise.all([loadUsers(), loadRequests(), loadUsage()]);
+  renderRevenue();
+}
+
+function showGateDenied(title, msg) {
+  document.getElementById('gate-title').textContent = title;
+  document.getElementById('gate-msg').textContent = msg;
+  document.getElementById('gate-action').style.display = 'block';
+}
+
+sb.auth.onAuthStateChange((event, session) => {
+  if (!session) {
+    // Lost session → back to gate.
+    document.getElementById('admin').classList.remove('active');
+    document.getElementById('gate').style.display = 'flex';
+    showGateDenied('Signed out', 'Sign back in from Keepstead to return.');
+  }
+});
+
+async function handleLogout() {
+  await sb.auth.signOut();
+  window.location.href = 'index.html';
+}
+
+function switchPanel(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.panel === name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+}
+
+// ══════════════════════════════════════════════════════════════════
+// USERS
+// ══════════════════════════════════════════════════════════════════
+async function loadUsers() {
+  // profiles + per-user completion request counts, joined in JS.
+  const { data: profiles, error: pErr } = await sb
+    .from('profiles')
+    .select('id,email,full_name,tier,signup_date,last_login');
+  if (pErr) {
+    document.getElementById('users-wrap').innerHTML =
+      `<div class="empty">Couldn't load profiles: ${escape(pErr.message)}</div>`;
+    return;
+  }
+
+  const reqCounts = {};
+  if (allRequests.length) {
+    for (const r of allRequests) {
+      reqCounts[r.user_id] = (reqCounts[r.user_id] || 0) + 1;
+    }
+  } else {
+    const { data: reqs } = await sb
+      .from('completion_requests')
+      .select('user_id');
+    (reqs || []).forEach(r => { reqCounts[r.user_id] = (reqCounts[r.user_id] || 0) + 1; });
+  }
+
+  // organizers started: union of user_ids present in each organizer table.
+  const tables = [
+    'dc_organizer_submissions','pm_organizer_submissions','ev_organizer_submissions',
+    'gn_organizer_submissions','yd_organizer_submissions','cr_organizer_submissions',
+    'au_organizer_submissions','cl_organizer_submissions','w2_organizer_submissions'
+  ];
+  const organizerCounts = {};
+  for (const t of tables) {
+    const { data, error } = await sb.from(t).select('user_id');
+    if (error) continue;  // table might not exist yet
+    (data || []).forEach(row => {
+      organizerCounts[row.user_id] = (organizerCounts[row.user_id] || 0) + 1;
+    });
+  }
+
+  allUsers = (profiles || []).map(p => ({
+    ...p,
+    request_count: reqCounts[p.id] || 0,
+    organizer_count: organizerCounts[p.id] || 0
+  }));
+  renderUsers();
+}
+
+function renderUsers() {
+  const wrap = document.getElementById('users-wrap');
+  const search = (document.getElementById('user-search').value || '').toLowerCase().trim();
+  const tier = document.getElementById('user-tier-filter').value;
+
+  let rows = allUsers.slice();
+  if (search) rows = rows.filter(u => (u.email || '').toLowerCase().includes(search));
+  if (tier)   rows = rows.filter(u => u.tier === tier);
+
+  rows.sort((a, b) => {
+    const { col, dir } = userSort;
+    let x = a[col], y = b[col];
+    if (x == null) x = '';
+    if (y == null) y = '';
+    if (x < y) return dir === 'asc' ? -1 : 1;
+    if (x > y) return dir === 'asc' ?  1 : -1;
+    return 0;
+  });
+
+  document.getElementById('user-count').textContent = `${rows.length} user${rows.length === 1 ? '' : 's'}`;
+
+  if (!rows.length) {
+    wrap.innerHTML = `<div class="empty">No users match.</div>`;
+    return;
+  }
+
+  const headers = [
+    ['email',           'Email'],
+    ['signup_date',     'Signed up'],
+    ['tier',            'Tier'],
+    ['last_login',      'Last login'],
+    ['organizer_count', 'Organizers'],
+    ['request_count',   'Requests'],
+    [null,              '']
+  ];
+
+  const thead = `<tr>${headers.map(([c, label]) =>
+    c
+      ? `<th onclick="setUserSort('${c}')">${label}${userSort.col === c ? (userSort.dir === 'asc' ? ' ▲' : ' ▼') : ''}</th>`
+      : `<th>${label}</th>`
+  ).join('')}</tr>`;
+
+  const tbody = rows.map(u => `
+    <tr class="expandable" onclick="toggleUserRow('${u.id}', this)">
+      <td>${escape(u.email || '')}</td>
+      <td>${fmtDate(u.signup_date)}</td>
+      <td><span class="chip ${u.tier}">${u.tier.replace('_',' ')}</span></td>
+      <td>${fmtDate(u.last_login) || '—'}</td>
+      <td>${u.organizer_count}</td>
+      <td>${u.request_count}</td>
+      <td>
+        <button class="action" onclick="event.stopPropagation(); viewUserData('${u.id}')">View data</button>
+      </td>
+    </tr>
+  `).join('');
+
+  wrap.innerHTML = `<table class="data"><thead>${thead}</thead><tbody>${tbody}</tbody></table>`;
+}
+
+function setUserSort(col) {
+  if (userSort.col === col) userSort.dir = userSort.dir === 'asc' ? 'desc' : 'asc';
+  else { userSort.col = col; userSort.dir = 'asc'; }
+  renderUsers();
+}
+
+function toggleUserRow(userId, rowEl) {
+  const next = rowEl.nextElementSibling;
+  if (next && next.classList.contains('expanded-row')) {
+    next.remove();
+    return;
+  }
+  const user = allUsers.find(u => u.id === userId);
+  const reqs = allRequests.filter(r => r.user_id === userId);
+  const reqList = reqs.length
+    ? reqs.map(r => `
+        <div style="padding:.4rem 0;border-bottom:1px dashed var(--border);font-size:.85rem;">
+          <strong>${escape(TRADE_LABELS[r.trade_code] || r.trade_code)}</strong>
+          — ${escape(REPORT_LABELS[r.report_type] || r.report_type)}
+          · <span class="chip ${r.status}">${r.status.replace('_',' ')}</span>
+          · $${Number(r.tier_paid).toFixed(0)}
+          · ${fmtDate(r.requested_at)}
+        </div>`).join('')
+    : '<div style="font-size:.85rem;color:var(--muted);">No completion requests.</div>';
+
+  const tr = document.createElement('tr');
+  tr.className = 'expanded-row';
+  tr.innerHTML = `<td colspan="7">
+    <div style="font-size:.85rem;color:var(--muted);margin-bottom:.5rem;">
+      <strong>${escape(user?.full_name || '—')}</strong> · id: <code>${escape(user?.id || '')}</code>
+    </div>
+    <div><strong>Completion requests:</strong></div>
+    ${reqList}
+  </td>`;
+  rowEl.after(tr);
+}
+
+function viewUserData(userId) {
+  // Opens a minimal summary of the user's submissions in a new tab.
+  const url = `admin.html?viewer=${encodeURIComponent(userId)}`;
+  showToast('View-data popup pending wire — viewer route is ' + url);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// COMPLETION REQUESTS
+// ══════════════════════════════════════════════════════════════════
+async function loadRequests() {
+  const { data, error } = await sb
+    .from('completion_requests')
+    .select('*')
+    .order('requested_at', { ascending: false });
+  if (error) {
+    document.getElementById('requests-wrap').innerHTML =
+      `<div class="empty">Couldn't load requests: ${escape(error.message)}</div>`;
+    return;
+  }
+  allRequests = data || [];
+  renderRequests();
+}
+
+function renderRequests() {
+  const wrap = document.getElementById('requests-wrap');
+  const filter = document.getElementById('req-status-filter').value;
+  const search = (document.getElementById('req-search').value || '').toLowerCase().trim();
+
+  let rows = allRequests.slice();
+  if (filter === 'open')      rows = rows.filter(r => r.status === 'pending' || r.status === 'in_progress');
+  else if (filter)            rows = rows.filter(r => r.status === filter);
+  if (search) {
+    rows = rows.filter(r =>
+      (r.user_email || '').toLowerCase().includes(search) ||
+      (r.trade_code || '').toLowerCase().includes(search)
+    );
+  }
+
+  document.getElementById('req-count').textContent = `${rows.length} request${rows.length === 1 ? '' : 's'}`;
+
+  if (!rows.length) {
+    wrap.innerHTML = `<div class="empty">No requests match.</div>`;
+    return;
+  }
+
+  const thead = `<tr>
+    <th>Requested</th>
+    <th>User</th>
+    <th>Trade</th>
+    <th>Report</th>
+    <th>Paid</th>
+    <th>Status</th>
+    <th>Actions</th>
+  </tr>`;
+
+  const tbody = rows.map(r => `
+    <tr>
+      <td>${fmtDate(r.requested_at)}</td>
+      <td>${escape(r.user_email)}</td>
+      <td><span class="chip">${escape(TRADE_LABELS[r.trade_code] || r.trade_code)}</span></td>
+      <td>${escape(REPORT_LABELS[r.report_type] || r.report_type)}</td>
+      <td>$${Number(r.tier_paid).toFixed(0)}</td>
+      <td>
+        <select class="status-select" onchange="updateRequestStatus('${r.id}', this.value)">
+          ${['pending','in_progress','done','cancelled'].map(s =>
+            `<option value="${s}" ${s === r.status ? 'selected' : ''}>${s.replace('_',' ')}</option>`
+          ).join('')}
+        </select>
+      </td>
+      <td>
+        <button class="action" onclick="openUserSubmission('${r.user_id}','${r.trade_code}')">Open data</button>
+        <button class="action primary" onclick="uploadReportPdf('${r.id}','${r.user_id}')">
+          ${r.pdf_url ? 'Replace PDF' : 'Upload PDF'}
+        </button>
+        ${r.pdf_url ? `<button class="action" onclick="downloadReport('${r.pdf_url}')">View</button>` : ''}
+      </td>
+    </tr>
+    ${r.notes ? `<tr><td colspan="7" style="font-size:.82rem;color:var(--muted);background:#fbf7ef;">
+      <strong>Note from user:</strong> ${escape(r.notes)}
+    </td></tr>` : ''}
+  `).join('');
+
+  wrap.innerHTML = `<table class="data"><thead>${thead}</thead><tbody>${tbody}</tbody></table>`;
+}
+
+async function updateRequestStatus(id, newStatus) {
+  const patch = { status: newStatus };
+  if (newStatus === 'in_progress') patch.started_at   = new Date().toISOString();
+  if (newStatus === 'done')        patch.completed_at = new Date().toISOString();
+  const { error } = await sb.from('completion_requests').update(patch).eq('id', id);
+  if (error) return showToast('Update failed: ' + error.message, true);
+  const r = allRequests.find(x => x.id === id);
+  if (r) Object.assign(r, patch);
+  showToast('Status updated ✓');
+  renderRequests();
+}
+
+function openUserSubmission(userId, tradeCode) {
+  // Opens the trade organizer pre-filled for that user. Read-only support
+  // requires a ?as=<user_id> param handled by each organizer; not implemented
+  // yet — for now this shows a toast.
+  showToast(`Open user data (user ${userId.slice(0,8)}… / ${tradeCode}) — impersonation view pending.`);
+}
+
+async function uploadReportPdf(requestId, userId) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/pdf';
+  input.onchange = async () => {
+    const file = input.files?.[0];
+    if (!file) return;
+    const path = `${userId}/${requestId}.pdf`;
+    const { error: upErr } = await sb.storage
+      .from('completion-reports')
+      .upload(path, file, { upsert: true, contentType: 'application/pdf' });
+    if (upErr) return showToast('Upload failed: ' + upErr.message, true);
+    const { data: signed } = await sb.storage
+      .from('completion-reports')
+      .createSignedUrl(path, 60 * 60 * 24 * 365);
+    const { error: uErr } = await sb
+      .from('completion_requests')
+      .update({
+        pdf_url: signed?.signedUrl || path,
+        status: 'done',
+        completed_at: new Date().toISOString()
+      })
+      .eq('id', requestId);
+    if (uErr) return showToast('Couldn\'t save PDF URL: ' + uErr.message, true);
+    showToast('Report uploaded + marked done ✓');
+    await loadRequests();
+  };
+  input.click();
+}
+
+function downloadReport(url) { window.open(url, '_blank', 'noopener'); }
+
+// ══════════════════════════════════════════════════════════════════
+// REVENUE
+// ══════════════════════════════════════════════════════════════════
+function renderRevenue() {
+  const paid = allRequests.filter(r => r.status !== 'cancelled');
+  const total = paid.reduce((s, r) => s + Number(r.tier_paid || 0), 0);
+
+  const thisYear = new Date().getFullYear();
+  const ytd = paid
+    .filter(r => new Date(r.requested_at).getFullYear() === thisYear)
+    .reduce((s, r) => s + Number(r.tier_paid || 0), 0);
+
+  const mrr = paid.reduce((s, r) => s + Number(r.tier_paid || 0) / 12, 0);
+  const payingUsers = new Set(paid.map(r => r.user_id)).size;
+
+  document.getElementById('revenue-stats').innerHTML = `
+    <div class="stat">
+      <div class="stat-label">MRR (annual ÷ 12)</div>
+      <div class="stat-value">$${mrr.toFixed(0)}</div>
+      <div class="stat-sub">Based on active request totals</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Total paying users</div>
+      <div class="stat-value">${payingUsers}</div>
+      <div class="stat-sub">Distinct users with at least one paid request</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">${thisYear} YTD</div>
+      <div class="stat-value">$${ytd.toFixed(0)}</div>
+      <div class="stat-sub">Requests received this year</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">All-time revenue</div>
+      <div class="stat-value">$${total.toFixed(0)}</div>
+      <div class="stat-sub">Sum of tier_paid (ex-cancelled)</div>
+    </div>`;
+
+  const skuTotals = {};
+  for (const r of paid) {
+    const key = r.report_type;
+    if (!skuTotals[key]) skuTotals[key] = { count: 0, total: 0 };
+    skuTotals[key].count += 1;
+    skuTotals[key].total += Number(r.tier_paid || 0);
+  }
+  const skuRows = Object.entries(skuTotals).map(([sku, v]) => `
+    <tr>
+      <td>${escape(REPORT_LABELS[sku] || sku)}</td>
+      <td>${v.count}</td>
+      <td>$${v.total.toFixed(0)}</td>
+    </tr>`).join('');
+
+  document.getElementById('sku-breakdown').innerHTML = Object.keys(skuTotals).length
+    ? `<table class="data">
+         <thead><tr><th>SKU</th><th>Count</th><th>Revenue</th></tr></thead>
+         <tbody>${skuRows}</tbody>
+       </table>`
+    : '<div class="empty">No completion requests yet.</div>';
+}
+
+// ══════════════════════════════════════════════════════════════════
+// TRADE USAGE
+// ══════════════════════════════════════════════════════════════════
+async function loadUsage() {
+  const { data, error } = await sb.from('trade_usage_counts').select('*');
+  const wrap = document.getElementById('usage-wrap');
+  if (error) {
+    wrap.innerHTML = `<div class="empty">View not available yet: ${escape(error.message)}<br>
+      Run supabase_admin_and_completion.sql to create it.</div>`;
+    return;
+  }
+  if (!data || !data.length) {
+    wrap.innerHTML = '<div class="empty">No usage data yet.</div>';
+    return;
+  }
+
+  const completions = {};
+  for (const r of allRequests.filter(r => r.status === 'done')) {
+    completions[r.trade_code] = (completions[r.trade_code] || 0) + 1;
+  }
+
+  const rows = data
+    .slice()
+    .sort((a, b) => b.active_users - a.active_users)
+    .map(r => `
+      <tr>
+        <td>${escape(TRADE_LABELS[r.trade_code] || r.trade_code)} <span style="color:var(--muted);">(${escape(r.trade_code)})</span></td>
+        <td>${r.active_users}</td>
+        <td>${completions[r.trade_code] || 0}</td>
+      </tr>`).join('');
+
+  wrap.innerHTML = `<table class="data">
+    <thead><tr><th>Trade</th><th>Active users (saved)</th><th>Completed requests</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════════
+function fmtDate(s) {
+  if (!s) return '';
+  try { return new Date(s).toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' }); }
+  catch { return s; }
+}
+function escape(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => (
+    { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]
+  ));
+}
+function showToast(msg, err) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.toggle('err', !!err);
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+bootstrap();
+</script>
+
+<!-- Ask Kari Widget -->
+<script src="https://chat.karikounkel.com/widget.js" defer></script>
+
+</body>
+</html>

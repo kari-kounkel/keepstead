@@ -329,6 +329,76 @@
     .welcome-hero { margin: 2.5rem auto 2rem; }
     .picker-card { padding: 1.5rem 1.25rem; }
   }
+
+  /* ── ADMIN LINK (only shown for admin email) ── */
+  .admin-link {
+    padding: 0.4rem 0.9rem;
+    background: transparent;
+    border: 1px solid var(--gold);
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    color: var(--gold);
+    cursor: pointer;
+    text-decoration: none;
+    margin-right: 0.3rem;
+  }
+  .admin-link:hover { background: var(--gold); color: var(--ink); }
+
+  /* ── MY REQUESTS ── */
+  .my-requests {
+    max-width: 720px;
+    margin: 0 auto 3rem;
+    padding: 0 1.5rem;
+  }
+  .requests-heading {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    color: var(--ink);
+  }
+  .request-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 0.75rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1rem;
+    align-items: center;
+  }
+  .req-status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .req-status-dot.pending     { background: #f4c04a; }
+  .req-status-dot.in_progress { background: #e07b3a; }
+  .req-status-dot.done        { background: var(--sage); }
+  .req-status-dot.cancelled   { background: #c0b5a7; }
+  .req-details { font-size: 0.88rem; }
+  .req-trade { font-weight: 600; color: var(--ink); }
+  .req-sub   { color: var(--muted); font-size: 0.8rem; margin-top: 0.15rem; }
+  .req-action a {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: var(--sage);
+    color: white;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  .req-action a:hover { background: #486347; }
+  .req-action .status-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
 </style>
 </head>
 <body>
@@ -385,6 +455,7 @@
     <div class="welcome-brand">Keepstead™</div>
     <div class="welcome-user">
       <span class="user-pill" id="user-email-display"></span>
+      <a href="admin.html" class="admin-link" id="admin-link" style="display:none;">Admin</a>
       <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
     </div>
   </div>
@@ -412,11 +483,18 @@
         <option value="rs.html">Resellers (Amazon FBA, eBay, Poshmark, vintage)</option>
         <option value="tp.html">Tax Preparers / Bookkeepers</option>
         <option value="tr.html">Trades &amp; Contractors (electrical, plumbing, HVAC, handyman)</option>
+        <option value="w2.html">W-2 / 1099 Wage Earner (no business — just my taxes)</option>
         <option value="yd.html">Yard &amp; Landscaping</option>
       </select>
       <button class="picker-btn" id="start-btn" onclick="startOrganizer()" disabled>Start your organizer →</button>
-      <div class="picker-hint">Don't see your trade? Use <strong>General Small Biz</strong> — it covers any Schedule C business.</div>
+      <div class="picker-hint">Don't see your trade? Use <strong>General Small Biz</strong> — or <strong>W-2 / 1099 Wage Earner</strong> if you're not running a business.</div>
     </div>
+  </div>
+
+  <!-- ── MY REQUESTS ── shown only when user has completion requests -->
+  <div class="my-requests" id="my-requests" style="display:none;">
+    <h3 class="requests-heading">Your completion requests</h3>
+    <div id="requests-list"></div>
   </div>
 
   <div class="welcome-footer">
@@ -431,8 +509,28 @@
 // ── SUPABASE ──
 const SUPABASE_URL = 'https://fufhjraudksavfncpdrm.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1ZmhqcmF1ZGtzYXZmbmNwZHJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1OTE3MDYsImV4cCI6MjA4NjE2NzcwNn0.JRjvoMM2Q2bFJtggzsOGW0x1GO3L4JpNF2zt3BqA4Ug';
+const ADMIN_EMAIL = 'kari@karikounkel.com';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const TRADE_LABELS = {
+  au: 'Auto Repair', cl: 'Cleaning', cr: 'Creative', dc: 'Daycare',
+  dw: 'Dog Walking', ev: 'Events', fn: 'Fitness', gn: 'General',
+  pm: 'Property Mgmt', rs: 'Resellers', tp: 'Tax Prep', tr: 'Trades',
+  yd: 'Yard', w2: 'W-2 / 1099'
+};
+const REPORT_LABELS = {
+  prep_worksheet:   'Preparer Worksheet',
+  tax_reference:    'Tax Reference Doc',
+  bundle_single:    'Bundle — single trade',
+  bundle_unlimited: 'Bundle — unlimited trades'
+};
+const STATUS_LABELS = {
+  pending: 'Awaiting Kari',
+  in_progress: 'Kari is working on it',
+  done: 'Complete',
+  cancelled: 'Cancelled'
+};
 
 let currentUser = null;
 
@@ -495,6 +593,49 @@ function showWelcome() {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('welcome').classList.add('active');
   document.getElementById('user-email-display').textContent = currentUser.email;
+  // Admin link for admin email only
+  if ((currentUser.email || '').toLowerCase() === ADMIN_EMAIL) {
+    document.getElementById('admin-link').style.display = 'inline-block';
+  }
+  // Stamp last_login (fire-and-forget; ignore if RPC not yet deployed)
+  sb.rpc('touch_last_login').then(() => {}).catch(() => {});
+  // Load My Requests
+  loadMyRequests();
+}
+
+async function loadMyRequests() {
+  const wrap = document.getElementById('my-requests');
+  const list = document.getElementById('requests-list');
+  try {
+    const { data, error } = await sb
+      .from('completion_requests')
+      .select('*')
+      .order('requested_at', { ascending: false });
+    if (error || !data || !data.length) {
+      wrap.style.display = 'none';
+      return;
+    }
+    list.innerHTML = data.map(r => {
+      const trade = TRADE_LABELS[r.trade_code] || r.trade_code;
+      const report = REPORT_LABELS[r.report_type] || r.report_type;
+      const when = new Date(r.requested_at).toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' });
+      const action = r.pdf_url && r.status === 'done'
+        ? `<a href="${r.pdf_url}" target="_blank" rel="noopener">Download PDF</a>`
+        : `<span class="status-label">${STATUS_LABELS[r.status] || r.status}</span>`;
+      return `
+        <div class="request-card">
+          <div class="req-status-dot ${r.status}"></div>
+          <div class="req-details">
+            <div class="req-trade">${trade} · ${report}</div>
+            <div class="req-sub">Requested ${when} · $${Number(r.tier_paid).toFixed(0)}</div>
+          </div>
+          <div class="req-action">${action}</div>
+        </div>`;
+    }).join('');
+    wrap.style.display = 'block';
+  } catch (e) {
+    wrap.style.display = 'none';
+  }
 }
 
 sb.auth.onAuthStateChange((event, session) => {
@@ -503,6 +644,10 @@ sb.auth.onAuthStateChange((event, session) => {
     showWelcome();
   } else {
     currentUser = null;
+    // Privacy: clear any per-user DOM before re-showing auth
+    document.getElementById('admin-link').style.display = 'none';
+    document.getElementById('my-requests').style.display = 'none';
+    document.getElementById('requests-list').innerHTML = '';
     showAuth();
   }
 });

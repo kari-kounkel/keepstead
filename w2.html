@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tax Organizer · W-2 / 1099 | Keepstead™</title>
+<meta name="author" content="CARES Consulting, Inc. & Kari Hoglund Kounkel">
+<meta name="copyright" content="© 2025–2026 CARES Consulting, Inc. All rights reserved.">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --cream: #faf7f2;
+    --warm: #f5ede0;
+    --accent: #c84b31;
+    --gold: #d4a843;
+    --sage: #5a7a5e;
+    --border: #d9cfc4;
+    --muted: #7a6f65;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; }
+
+  .auth-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--ink); padding: 2rem; }
+  .auth-box { background: var(--cream); border-radius: 16px; padding: 2.5rem; width: 100%; max-width: 420px; }
+  .auth-logo { font-family: 'DM Serif Display', serif; font-size: 2rem; color: var(--ink); margin-bottom: 0.25rem; }
+  .auth-sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+  .auth-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+  .auth-tab { flex: 1; padding: 0.6rem; border: 2px solid var(--border); border-radius: 8px; background: transparent; font-family: inherit; font-size: 0.9rem; font-weight: 500; cursor: pointer; color: var(--muted); transition: all 0.2s; }
+  .auth-tab.active { background: var(--accent); border-color: var(--accent); color: white; }
+  .auth-field { margin-bottom: 1rem; }
+  .auth-field label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--muted); margin-bottom: 0.4rem; }
+  .auth-field input { width: 100%; padding: 0.7rem 1rem; border: 1.5px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.95rem; background: white; color: var(--ink); }
+  .auth-field input:focus { outline: none; border-color: var(--accent); }
+  .auth-btn { width: 100%; padding: 0.85rem; background: var(--accent); color: white; border: none; border-radius: 8px; font-family: inherit; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 0.5rem; }
+  .auth-btn:hover { background: #a33a23; }
+  .auth-error { color: var(--accent); font-size: 0.85rem; margin-top: 0.75rem; text-align: center; min-height: 1.2rem; }
+
+  .app { display: none; }
+  .header { background: var(--ink); color: var(--cream); padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+  .header-left h1 { font-family: 'DM Serif Display', serif; font-size: 1.5rem; }
+  .header-left p { font-size: 0.8rem; color: #a89e94; margin-top: 0.15rem; }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .user-pill { font-size: 0.8rem; color: #a89e94; }
+  .btn-logout { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #a89e94; padding: 0.4rem 0.9rem; border-radius: 1rem; font-family: inherit; font-size: 0.8rem; cursor: pointer; }
+  .btn-logout:hover { border-color: white; color: white; }
+
+  .years-nav { display: flex; justify-content: center; gap: 0.5rem; padding: 1.25rem 1rem; background: var(--warm); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .year-tab { padding: 0.45rem 1.1rem; border: 2px solid var(--border); border-radius: 2rem; background: transparent; font-family: inherit; font-size: 0.88rem; font-weight: 500; cursor: pointer; color: var(--muted); }
+  .year-tab.active { background: var(--accent); border-color: var(--accent); color: white; }
+  .year-tab:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+
+  .save-bar { background: white; border-bottom: 1px solid var(--border); padding: 0.6rem 1.5rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; color: var(--muted); flex-wrap: wrap; gap: 0.5rem; }
+  .btn-save { background: var(--sage); color: white; border: none; padding: 0.45rem 1.25rem; border-radius: 1rem; font-family: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+  .btn-save:hover { background: #486347; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 1.5rem 1.5rem 4rem; }
+  .year-section { display: none; }
+  .year-section.active { display: block; }
+
+  .year-banner { background: var(--ink); color: var(--cream); border-radius: 12px 12px 0 0; padding: 1.1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; }
+  .year-banner h2 { font-family: 'DM Serif Display', serif; font-size: 1.5rem; }
+
+  .card { background: white; border: 1px solid var(--border); border-top: none; padding: 1.5rem; }
+  .card:last-of-type { border-radius: 0 0 12px 12px; margin-bottom: 1.5rem; }
+  .card + .card { border-top: 1px solid var(--border); }
+
+  .section-label { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 0.85rem; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 0.85rem; }
+  .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+  .form-row.four { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .form-row.single { grid-template-columns: 1fr; }
+  .field { display: flex; flex-direction: column; gap: 0.35rem; }
+  label { font-size: 0.8rem; font-weight: 500; color: var(--muted); }
+
+  input[type="text"], input[type="number"], input[type="email"], input[type="date"], select, textarea {
+    font-family: inherit; font-size: 0.92rem; padding: 0.55rem 0.8rem;
+    border: 1.5px solid var(--border); border-radius: 7px; background: var(--cream);
+    color: var(--ink); width: 100%;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 72px; }
+
+  .money-field { position: relative; }
+  .money-field input { padding-left: 1.5rem; }
+  .money-field::before { content: '$'; position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.88rem; pointer-events: none; }
+
+  .divider { border: none; border-top: 1px dashed var(--border); margin: 1.1rem 0; }
+
+  .note-box { background: #fff9f0; border: 1px solid #f0d9b5; border-left: 4px solid var(--gold); border-radius: 0 8px 8px 0; padding: 0.75rem 1rem; font-size: 0.83rem; color: #6b5c3e; margin-bottom: 0.85rem; line-height: 1.5; }
+
+  .slot {
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    margin-bottom: 0.75rem;
+    background: var(--cream);
+  }
+  .slot-title {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.6rem;
+  }
+
+  .checkbox-group { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; }
+  .checkbox-item { display: flex; align-items: center; gap: 0.45rem; font-size: 0.86rem; cursor: pointer; }
+  .checkbox-item input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+
+  .client-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+
+  .submit-area { text-align: center; padding: 1.5rem 0 1rem; display: flex; justify-content: center; gap: 0.75rem; flex-wrap: wrap; }
+  .btn-primary { background: var(--accent); color: white; border: none; padding: 0.85rem 2.25rem; border-radius: 2rem; font-family: inherit; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
+  .btn-primary:hover { background: #a33a23; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(200,75,49,0.25); }
+  .btn-secondary { background: transparent; color: var(--muted); border: 1.5px solid var(--border); padding: 0.75rem 1.5rem; border-radius: 2rem; font-family: inherit; font-size: 0.88rem; cursor: pointer; }
+  .btn-secondary:hover { border-color: var(--ink); color: var(--ink); }
+
+  .totals-bar {
+    background: var(--warm);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.65rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.88rem;
+    margin-top: 0.5rem;
+  }
+  .totals-bar strong { color: var(--sage); font-size: 1rem; }
+
+  .footer-note { text-align: center; font-size: 0.76rem; color: var(--muted); margin-top: 1rem; line-height: 1.6; }
+
+  .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); padding: 0.85rem 1.5rem; border-radius: 2rem; font-size: 0.88rem; box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 9999; background: var(--ink); color: var(--cream); opacity: 0; transition: opacity .25s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .toast.err { background: var(--accent); }
+
+  @media (max-width: 640px) {
+    .form-row, .form-row.three, .form-row.four { grid-template-columns: 1fr; }
+    .checkbox-group { grid-template-columns: 1fr; }
+  }
+
+  @media print {
+    .auth-screen, .years-nav, .save-bar, .submit-area, .btn-logout, .header-right, .toast, .note-box, button { display: none !important; }
+    body { font-size: 9pt; background: white !important; color: #1a1a2e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    @page { margin: 0.5in 0.6in; size: letter; }
+    .app { display: block !important; }
+    .year-section { display: block !important; page-break-before: always; }
+    .year-section:first-of-type { page-break-before: auto; }
+    .container { max-width: 100% !important; padding: 0 !important; }
+    .header { background: #1a1a2e !important; color: #faf7f2 !important; padding: 0.35in 0.4in !important; text-align: center !important; display: block !important; border-bottom: 3px solid #c84b31 !important; margin: -0.5in -0.6in 0.2in -0.6in !important; width: calc(100% + 1.2in) !important; }
+    .card { page-break-inside: avoid; border: none !important; border-bottom: 0.5pt solid #e0d8cf !important; border-radius: 0 !important; padding: 6pt 0 !important; }
+    input, select, textarea { border: none !important; border-bottom: 0.5pt solid #d9cfc4 !important; background: transparent !important; font-size: 9pt !important; padding: 1pt 0 !important; }
+    .money-field::before { display: none; }
+    .slot { border: 0.5pt solid #d9cfc4 !important; background: white !important; padding: 4pt !important; margin-bottom: 3pt !important; page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div class="auth-screen" id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">Keepstead</div>
+    <div class="auth-sub">Tax Organizer · W-2 / 1099 Wage Earner · CARES Consulting</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="switchAuthTab('signup')">Create Account</button>
+    </div>
+    <div id="login-form">
+      <div class="auth-field"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="login-password" placeholder="••••••••"></div>
+      <button class="auth-btn" onclick="handleLogin()">Sign In</button>
+    </div>
+    <div id="signup-form" style="display:none;">
+      <div class="auth-field"><label>Full Name</label><input type="text" id="signup-name" placeholder="Your name"></div>
+      <div class="auth-field"><label>Email</label><input type="email" id="signup-email" placeholder="your@email.com"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="signup-password" placeholder="Min 6 characters"></div>
+      <button class="auth-btn" onclick="handleSignup()">Create Account</button>
+    </div>
+    <div class="auth-error" id="auth-error"></div>
+    <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid #d9cfc4;font-size:0.7rem;color:#7a6f65;line-height:1.8;text-align:center;">
+      Keepstead™ is the proprietary intellectual property of<br>
+      <strong style='color:#1a1a2e;'>CARES Consulting, Inc. &amp; Kari Hoglund Kounkel</strong><br>
+      © 2025–2026. All rights reserved.<br>
+      Unauthorized use, duplication, hosting, or distribution is strictly prohibited.
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+
+  <div class="header">
+    <div class="header-left">
+      <h1>Keepstead</h1>
+      <p>W-2 / 1099 Wage-Earner Organizer · 10-Year Window</p>
+    </div>
+    <div class="header-right">
+      <span class="user-pill" id="user-email-display"></span>
+      <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="years-nav" id="years-nav">
+    <button class="year-tab active" onclick="showSection('info')">Filer Info</button>
+    <button class="year-tab" onclick="showSection('summary')">Summary</button>
+  </div>
+
+  <div class="save-bar">
+    <span id="save-status">All changes saved when you click Save.</span>
+    <button class="btn-save" onclick="saveAll()">💾 Save All</button>
+  </div>
+
+  <div class="container">
+
+    <!-- FILER INFO -->
+    <div class="year-section active" id="section-info">
+      <div class="client-card">
+        <div class="section-label">Your Info</div>
+        <div class="form-row">
+          <div class="field"><label>Full Legal Name</label><input type="text" id="filer-name" placeholder="As it appears on SSN card"></div>
+          <div class="field"><label>Social Security Number</label><input type="text" id="filer-ssn" placeholder="XXX-XX-XXXX"></div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Filing Status</label>
+            <select id="filer-filing-status">
+              <option value="">Select...</option>
+              <option>Single</option>
+              <option>Married Filing Jointly</option>
+              <option>Married Filing Separately</option>
+              <option>Head of Household</option>
+              <option>Qualifying Surviving Spouse</option>
+            </select>
+          </div>
+          <div class="field"><label>Phone</label><input type="text" id="filer-phone" placeholder="Best contact number"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Home Address</label><input type="text" id="filer-address" placeholder="Street, City, State, ZIP"></div>
+          <div class="field"><label>Email</label><input type="email" id="filer-email" placeholder="For document delivery"></div>
+        </div>
+        <div class="form-row three">
+          <div class="field"><label>Date of Birth</label><input type="text" id="filer-dob" placeholder="MM/DD/YYYY"></div>
+          <div class="field"><label>Occupation</label><input type="text" id="filer-occupation" placeholder="e.g. Nurse, teacher, driver"></div>
+          <div class="field"><label>State (residence)</label><input type="text" id="filer-state" placeholder="2-letter"></div>
+        </div>
+
+        <hr class="divider">
+        <div class="section-label">Spouse (if Married Filing Jointly / Separately)</div>
+        <div class="form-row">
+          <div class="field"><label>Spouse Full Legal Name</label><input type="text" id="spouse-name" placeholder="Leave blank if N/A"></div>
+          <div class="field"><label>Spouse SSN</label><input type="text" id="spouse-ssn" placeholder="XXX-XX-XXXX"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Spouse DOB</label><input type="text" id="spouse-dob" placeholder="MM/DD/YYYY"></div>
+          <div class="field"><label>Spouse Occupation</label><input type="text" id="spouse-occupation" placeholder="If filing jointly"></div>
+        </div>
+
+        <hr class="divider">
+        <div class="section-label">Dependents</div>
+        <div class="note-box">💡 List everyone you claim as a dependent (children, qualifying relatives). We'll use this to figure Child Tax Credit, Credit for Other Dependents, and dependent care.</div>
+        <div id="dependents-list"></div>
+        <button class="btn-secondary" style="margin-top:0.5rem;" onclick="addDependent()">+ Add dependent</button>
+
+        <hr class="divider">
+        <div class="section-label">Standing Preferences</div>
+        <div class="form-row">
+          <div class="field">
+            <label>Prefers to take</label>
+            <select id="filer-deduction-pref">
+              <option value="">Standard vs Itemized — let preparer decide</option>
+              <option>Standard deduction</option>
+              <option>Itemize (I know I have enough to itemize)</option>
+              <option>Not sure — run the numbers</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Direct-deposit refund?</label>
+            <select id="filer-direct-deposit">
+              <option value="">Select...</option>
+              <option>Yes — same account as last year</option>
+              <option>Yes — new account (I'll provide details)</option>
+              <option>No — paper check</option>
+            </select>
+          </div>
+        </div>
+
+        <hr class="divider">
+        <div class="section-label">Preparer Notes</div>
+        <div class="form-row single">
+          <div class="field"><textarea id="filer-notes" placeholder="Anything your preparer should know up front..."></textarea></div>
+        </div>
+      </div>
+      <div class="submit-area">
+        <button class="btn-primary" onclick="showSection(years[years.length-1])">Continue to this year →</button>
+      </div>
+    </div>
+
+    <!-- YEAR SECTIONS (injected) -->
+    <div id="year-sections-container"></div>
+
+    <!-- SUMMARY -->
+    <div class="year-section" id="section-summary">
+      <div class="client-card">
+        <div class="section-label">Multi-Year Overview</div>
+        <h2 style="font-family:'DM Serif Display',serif;font-size:1.4rem;margin-bottom:0.4rem;">Here's what we've got.</h2>
+        <p style="color:var(--muted);font-size:0.88rem;margin-bottom:1.25rem;">Totals by year — review and flag anything missing.</p>
+        <div id="summary-grid"></div>
+        <hr class="divider" style="margin-top:1.25rem;">
+        <div class="form-row single" style="margin-top:1rem;">
+          <div class="field">
+            <label>Summary Notes / Follow-ups</label>
+            <textarea id="summary-notes" placeholder="Cross-year flags, deliverables, next steps..."></textarea>
+          </div>
+        </div>
+        <div class="submit-area">
+          <button class="btn-secondary" onclick="window.print()">🖨️ Print Tax-Ready Packet</button>
+          <button class="btn-primary" onclick="saveAll()">💾 Save All</button>
+        </div>
+      </div>
+      <div class="footer-note">
+        Keepstead™ · CARES Consulting, Inc. · Confidential tax preparation material.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// SUPABASE
+// ══════════════════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://fufhjraudksavfncpdrm.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1ZmhqcmF1ZGtzYXZmbmNwZHJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1OTE3MDYsImV4cCI6MjA4NjE2NzcwNn0.JRjvoMM2Q2bFJtggzsOGW0x1GO3L4JpNF2zt3BqA4Ug';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+let dependents = [];
+
+// ══════════════════════════════════════════════════════════════════
+// 10-YEAR ROLLING WINDOW (newest on right, active)
+// ══════════════════════════════════════════════════════════════════
+const CURRENT_YEAR = new Date().getFullYear();
+const WINDOW_SIZE = 10;
+const years = [];
+for (let y = CURRENT_YEAR - WINDOW_SIZE + 1; y <= CURRENT_YEAR; y++) years.push(String(y));
+
+const W2_SLOTS   = 3;  // fixed slots per year — add dynamic rows later if needed
+const N1099_SLOTS = 5;
+
+// ══════════════════════════════════════════════════════════════════
+// 1099 TYPE OPTIONS
+// ══════════════════════════════════════════════════════════════════
+const FORMS_1099 = [
+  '1099-NEC (contractor income)',
+  '1099-MISC (other income, rents, prizes)',
+  '1099-K (payment platform: Venmo, PayPal, Etsy, eBay)',
+  '1099-INT (interest)',
+  '1099-DIV (dividends)',
+  '1099-B (brokerage — stock / crypto sales)',
+  '1099-R (retirement / IRA / pension distributions)',
+  '1099-G (unemployment, state tax refund)',
+  '1099-SA (HSA distributions)',
+  'SSA-1099 (Social Security)',
+  'Other 1099'
+];
+
+// ══════════════════════════════════════════════════════════════════
+// BUILD NAV + SECTIONS
+// ══════════════════════════════════════════════════════════════════
+(function buildYearTabs() {
+  const nav = document.getElementById('years-nav');
+  const summaryBtn = nav.querySelector('button:last-child');
+  years.forEach(y => {
+    const btn = document.createElement('button');
+    btn.className = 'year-tab';
+    btn.textContent = y;
+    btn.setAttribute('onclick', `showSection('${y}')`);
+    nav.insertBefore(btn, summaryBtn);
+  });
+})();
+
+(function buildYearSections() {
+  const container = document.getElementById('year-sections-container');
+  years.forEach(year => {
+    const sec = document.createElement('div');
+    sec.className = 'year-section';
+    sec.id = 'section-' + year;
+    sec.innerHTML = renderYearHtml(year);
+    container.appendChild(sec);
+  });
+  // Wire total listeners after all years built
+  years.forEach(year => wireYearTotals(year));
+})();
+
+function money(id, placeholder) {
+  return `<div class="field"><label>${placeholder}</label><div class="money-field"><input type="number" step="0.01" id="${id}"></div></div>`;
+}
+function txt(id, label, ph) {
+  return `<div class="field"><label>${label}</label><input type="text" id="${id}" placeholder="${ph || ''}"></div>`;
+}
+
+function renderYearHtml(year) {
+  return `
+    <div class="year-banner">
+      <h2>${year}</h2>
+      <div style="font-size:.8rem;color:#a89e94;">Tax year · Personal return</div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">W-2s &amp; 1099s (${year})</div>
+      <div class="note-box">💡 Your W-2s, 1099s, and IRS Wage &amp; Income transcripts live on the <strong>Wages &amp; 1099s</strong> tab at the top of this page — shared across every Keepstead organizer for you as a filer.</div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Retirement &amp; HSA Contributions (${year})</div>
+      <div class="form-row three">
+        ${money(`${year}-ira-trad`, 'Traditional IRA contribution')}
+        ${money(`${year}-ira-roth`, 'Roth IRA contribution')}
+        ${money(`${year}-hsa`, 'HSA contribution (out-of-pocket)')}
+      </div>
+      <div class="form-row three">
+        ${money(`${year}-401k-extra`, 'Extra 401(k) (non-W-2)')}
+        ${money(`${year}-sep-ira`, 'SEP / SIMPLE IRA')}
+        ${money(`${year}-student-int`, 'Student loan interest paid')}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Itemized Deductions (${year})</div>
+      <div class="note-box">💡 Only fill these if you think you might itemize. Your preparer will compare against the standard deduction.</div>
+      <div class="form-row three">
+        ${money(`${year}-ded-mortgage`, 'Mortgage interest (1098)')}
+        ${money(`${year}-ded-property-tax`, 'Property tax paid')}
+        ${money(`${year}-ded-salt`, 'State/local income tax (beyond W-2)')}
+      </div>
+      <div class="form-row three">
+        ${money(`${year}-ded-charity-cash`, 'Charitable — cash')}
+        ${money(`${year}-ded-charity-noncash`, 'Charitable — non-cash')}
+        ${money(`${year}-ded-medical`, 'Out-of-pocket medical')}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Credits Candidates (${year})</div>
+      <div class="form-row three">
+        ${money(`${year}-cr-depcare`, 'Dependent-care expenses')}
+        ${money(`${year}-cr-tuition`, 'Tuition / 1098-T paid')}
+        ${money(`${year}-cr-books`, 'Required books &amp; fees')}
+      </div>
+      <div class="form-row three">
+        ${money(`${year}-cr-ev`, 'Clean vehicle purchase')}
+        ${money(`${year}-cr-solar`, 'Solar / home energy upgrades')}
+        ${money(`${year}-cr-adoption`, 'Adoption expenses')}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Life Events (${year})</div>
+      <div class="checkbox-group">
+        <label class="checkbox-item"><input type="checkbox" id="${year}-le-marriage"> Got married</label>
+        <label class="checkbox-item"><input type="checkbox" id="${year}-le-divorce"> Got divorced</label>
+        <label class="checkbox-item"><input type="checkbox" id="${year}-le-child"> New child / adoption</label>
+        <label class="checkbox-item"><input type="checkbox" id="${year}-le-home-bought"> Bought a home</label>
+        <label class="checkbox-item"><input type="checkbox" id="${year}-le-home-sold"> Sold a home</label>
+        <label class="checkbox-item"><input type="checkbox" id="${year}-le-moved"> Moved states</label>
+        <label class="checkbox-item"><input type="checkbox" id="${year}-le-job-change"> Changed jobs</label>
+        <label class="checkbox-item"><input type="checkbox" id="${year}-le-retired"> Retired</label>
+        <label class="checkbox-item"><input type="checkbox" id="${year}-le-inherit"> Received inheritance</label>
+        <label class="checkbox-item"><input type="checkbox" id="${year}-le-disability"> Disability event</label>
+      </div>
+      <div class="form-row single" style="margin-top:0.75rem;">
+        ${txt(`${year}-le-notes`, 'Life event notes', 'Dates, details, anything a preparer should know')}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Year Notes (${year})</div>
+      <div class="form-row single">
+        <div class="field"><textarea id="${year}-notes" placeholder="Anything specific to this tax year..."></textarea></div>
+      </div>
+    </div>
+  `;
+}
+
+function wireYearTotals(_year) { /* W-2/1099 totals now handled in side-income.js */ }
+
+// ══════════════════════════════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════════════════════════════
+function showSection(name) {
+  document.querySelectorAll('.year-section').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('section-' + name);
+  if (target) target.classList.add('active');
+  document.querySelectorAll('.year-tab').forEach(t => {
+    const label = t.textContent.trim();
+    const mapTarget = name === 'info' ? 'Filer Info' : name === 'summary' ? 'Summary' : name;
+    t.classList.toggle('active', label === mapTarget);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (name === 'summary') renderSummary();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// DEPENDENTS
+// ══════════════════════════════════════════════════════════════════
+function addDependent(dep) {
+  const d = dep || { name: '', relation: '', dob: '', ssn: '', months: '12' };
+  dependents.push(d);
+  renderDependents();
+}
+function removeDependent(idx) { dependents.splice(idx, 1); renderDependents(); }
+
+function renderDependents() {
+  const wrap = document.getElementById('dependents-list');
+  if (!dependents.length) {
+    wrap.innerHTML = '<div style="font-size:.85rem;color:var(--muted);">No dependents added yet.</div>';
+    return;
+  }
+  wrap.innerHTML = dependents.map((d, i) => `
+    <div class="slot">
+      <div class="form-row">
+        <div class="field"><label>Name</label><input type="text" value="${escAttr(d.name)}" oninput="dependents[${i}].name=this.value"></div>
+        <div class="field"><label>Relationship</label><input type="text" placeholder="e.g. Daughter, Son, Parent" value="${escAttr(d.relation)}" oninput="dependents[${i}].relation=this.value"></div>
+      </div>
+      <div class="form-row three">
+        <div class="field"><label>Date of Birth</label><input type="text" placeholder="MM/DD/YYYY" value="${escAttr(d.dob)}" oninput="dependents[${i}].dob=this.value"></div>
+        <div class="field"><label>SSN</label><input type="text" placeholder="XXX-XX-XXXX" value="${escAttr(d.ssn)}" oninput="dependents[${i}].ssn=this.value"></div>
+        <div class="field"><label>Months in home</label><input type="number" min="0" max="12" value="${escAttr(d.months)}" oninput="dependents[${i}].months=this.value"></div>
+      </div>
+      <button class="btn-secondary" style="padding:.4rem .85rem;font-size:.8rem;" onclick="removeDependent(${i})">Remove</button>
+    </div>
+  `).join('');
+}
+
+function escAttr(s) {
+  return String(s ?? '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════════════════════
+async function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) showAuthError(error.message);
+}
+
+async function handleSignup() {
+  const name = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  const { error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name } } });
+  if (error) showAuthError(error.message);
+  else showAuthError('Check your email to confirm, then sign in.');
+}
+
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t, i) =>
+    t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'signup'))
+  );
+  document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('signup-form').style.display = tab === 'signup' ? 'block' : 'none';
+  document.getElementById('auth-error').textContent = '';
+}
+
+function showAuthError(msg) {
+  document.getElementById('auth-error').textContent = msg;
+}
+
+async function handleLogout() {
+  await sb.auth.signOut();
+  wipeAllFormData();
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('user-email-display').textContent = '';
+}
+
+// ══════════════════════════════════════════════════════════════════
+// WIPE ALL FORM DATA — privacy on logout + user change
+// ══════════════════════════════════════════════════════════════════
+function wipeAllFormData() {
+  dependents.length = 0;
+  document.querySelectorAll('#app input[type="text"], #app input[type="number"], #app input[type="email"], #app input[type="date"], #app select, #app textarea').forEach(el => { el.value = ''; });
+  document.querySelectorAll('#app input[type="checkbox"]').forEach(el => { el.checked = false; });
+  years.forEach(y => {
+    const w = document.getElementById(`${y}-w2-total`);
+    const n = document.getElementById(`${y}-1099-total`);
+    if (w) w.textContent = '$0';
+    if (n) n.textContent = '$0';
+  });
+  renderDependents();
+  // Reset to Filer Info
+  document.querySelectorAll('.year-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('section-info').classList.add('active');
+  document.querySelectorAll('.year-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+}
+
+let lastSeenUserId = null;
+
+sb.auth.onAuthStateChange((event, session) => {
+  if (session?.user) {
+    if (lastSeenUserId && lastSeenUserId !== session.user.id) wipeAllFormData();
+    lastSeenUserId = session.user.id;
+    currentUser = session.user;
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('user-email-display').textContent = session.user.email;
+    loadSavedData();
+  } else {
+    lastSeenUserId = null;
+    currentUser = null;
+    wipeAllFormData();
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+});
+
+// ══════════════════════════════════════════════════════════════════
+// SAVE / LOAD
+// ══════════════════════════════════════════════════════════════════
+function collectAllData() {
+  const data = { filer: {}, dependents: [...dependents], years: {}, summary: {} };
+
+  // Filer
+  ['filer-name','filer-ssn','filer-filing-status','filer-phone','filer-address','filer-email',
+   'filer-dob','filer-occupation','filer-state','spouse-name','spouse-ssn','spouse-dob',
+   'spouse-occupation','filer-deduction-pref','filer-direct-deposit','filer-notes']
+    .forEach(id => { const el = document.getElementById(id); if (el) data.filer[id] = el.value; });
+
+  // Summary
+  const sn = document.getElementById('summary-notes'); if (sn) data.summary.notes = sn.value;
+
+  // Per-year — grab every input under section-YEAR
+  years.forEach(y => {
+    const sec = document.getElementById('section-' + y);
+    if (!sec) return;
+    const yd = {};
+    sec.querySelectorAll('input, select, textarea').forEach(el => {
+      if (!el.id) return;
+      yd[el.id] = el.type === 'checkbox' ? !!el.checked : el.value;
+    });
+    data.years[y] = yd;
+  });
+
+  return data;
+}
+
+async function saveAll() {
+  if (!currentUser) return;
+  const btn = document.querySelector('.btn-save');
+  if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
+  try {
+    const payload = {
+      user_id: currentUser.id,
+      filer_name: document.getElementById('filer-name')?.value || '',
+      submitted_at: new Date().toISOString(),
+      raw_form_data: collectAllData(),
+      years_covered: years,
+      status: 'in_review'
+    };
+    const { error } = await sb.from('w2_organizer_submissions').upsert(payload, { onConflict: 'user_id' });
+    if (error) throw error;
+    setSaveStatus('Saved ✓ ' + new Date().toLocaleTimeString());
+    showToast('Saved to Keepstead ✓');
+  } catch (e) {
+    showToast('Save failed: ' + e.message, true);
+  } finally {
+    if (btn) { btn.textContent = '💾 Save All'; btn.disabled = false; }
+  }
+}
+
+async function loadSavedData() {
+  if (!currentUser) return;
+  wipeAllFormData();
+  setSaveStatus('Loading...');
+  try {
+    const { data, error } = await sb.from('w2_organizer_submissions')
+      .select('*').eq('user_id', currentUser.id).maybeSingle();
+    if (error || !data) { setSaveStatus('No saved data — fill in and save.'); return; }
+
+    const saved = data.raw_form_data || {};
+    // Filer fields
+    Object.entries(saved.filer || {}).forEach(([k, v]) => {
+      const el = document.getElementById(k);
+      if (el) el.value = v;
+    });
+    // Dependents
+    (saved.dependents || []).forEach(d => addDependent(d));
+    renderDependents();
+    // Summary
+    if (saved.summary?.notes) document.getElementById('summary-notes').value = saved.summary.notes;
+    // Per-year
+    Object.entries(saved.years || {}).forEach(([year, ydata]) => {
+      Object.entries(ydata).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.type === 'checkbox') el.checked = !!val;
+        else el.value = val;
+      });
+      try { wireYearTotals(year); } catch(e) {}
+    });
+    // Re-run totals after load
+    years.forEach(y => wireYearTotals(y));
+    setSaveStatus('Loaded ✓ ' + new Date(data.submitted_at).toLocaleString());
+  } catch (e) {
+    setSaveStatus('Load failed: ' + e.message);
+  }
+}
+
+function setSaveStatus(msg) {
+  const el = document.getElementById('save-status');
+  if (el) el.textContent = msg;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SUMMARY
+// ══════════════════════════════════════════════════════════════════
+function renderSummary() {
+  const wrap = document.getElementById('summary-grid');
+  const rows = years.slice().reverse().map(y => {
+    const ret = (parseFloat(document.getElementById(`${y}-ira-trad`)?.value) || 0)
+              + (parseFloat(document.getElementById(`${y}-ira-roth`)?.value) || 0)
+              + (parseFloat(document.getElementById(`${y}-hsa`)?.value) || 0)
+              + (parseFloat(document.getElementById(`${y}-401k-extra`)?.value) || 0)
+              + (parseFloat(document.getElementById(`${y}-sep-ira`)?.value) || 0);
+    const itemized = (parseFloat(document.getElementById(`${y}-ded-mortgage`)?.value) || 0)
+              + (parseFloat(document.getElementById(`${y}-ded-property-tax`)?.value) || 0)
+              + (parseFloat(document.getElementById(`${y}-ded-salt`)?.value) || 0)
+              + (parseFloat(document.getElementById(`${y}-ded-charity-cash`)?.value) || 0)
+              + (parseFloat(document.getElementById(`${y}-ded-charity-noncash`)?.value) || 0)
+              + (parseFloat(document.getElementById(`${y}-ded-medical`)?.value) || 0);
+    return `
+      <div style="display:grid;grid-template-columns:80px 1fr 1fr;gap:.5rem;padding:.5rem .75rem;border-bottom:1px dashed var(--border);font-size:.88rem;">
+        <strong>${y}</strong>
+        <span>Retirement + HSA: $${ret.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+        <span>Itemized: $${itemized.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+      </div>`;
+  }).join('');
+  wrap.innerHTML = `
+    <div style="font-size:.82rem;color:var(--muted);margin-bottom:.75rem;line-height:1.5;">
+      W-2 wages, 1099 gross, and federal withholding live on the <strong>Wages &amp; 1099s</strong> tab.
+    </div>
+    <div style="display:grid;grid-template-columns:80px 1fr 1fr;gap:.5rem;padding:.4rem .75rem;font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">
+      <span>Year</span><span>Retirement + HSA</span><span>Itemized</span>
+    </div>
+    ${rows}`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════════════════════
+function showToast(msg, err) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.toggle('err', !!err);
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// Init dependents view empty
+renderDependents();
+</script>
+
+<!-- Request Kari to Complete widget -->
+<script>window.KEEPSTEAD_TRADE_CODE = 'w2'; window.sb = sb;</script>
+<script src="request-kari.js" defer></script>
+<script src="side-income.js" defer></script>
+
+<!-- Ask Kari Widget -->
+<script src="https://chat.karikounkel.com/widget.js" defer></script>
+
+</body>
+</html>
