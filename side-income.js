@@ -57,17 +57,34 @@
         font-size: 0.85rem; color: #7a6f65;
       }
       .kk-year-select, #kk-si-section .kk-si-year-select {
-        padding: 0.4rem 2.4rem 0.4rem 1rem;
-        border: 2px solid #c84b31; border-radius: 999px;
-        background: #c84b31; color: white;
-        font-family: inherit; font-size: 0.88rem; font-weight: 600;
-        cursor: pointer; appearance: none; -webkit-appearance: none;
-        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='white' d='M6 8L0 0h12z'/></svg>");
-        background-repeat: no-repeat;
-        background-position: right 1rem center;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: 140px;
+        padding: 0.45rem 2rem 0.45rem 1.1rem !important;
+        border: 2px solid #c84b31 !important;
+        border-radius: 2rem !important;
+        background-color: #c84b31 !important;
+        color: white !important;
+        font-family: inherit !important;
+        font-size: 0.88rem !important;
+        font-weight: 500 !important;
+        line-height: 1.2 !important;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='white' d='M6 8L0 0h12z'/></svg>") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 0.75rem center !important;
+        margin: 0;
+        display: inline-block;
+        vertical-align: middle;
+        height: auto !important;
+        box-sizing: border-box;
       }
       .kk-year-select:focus, #kk-si-section .kk-si-year-select:focus { outline: none; }
-      .kk-year-select option, #kk-si-section .kk-si-year-select option { color: #1a1a2e; background: white; }
+      .kk-year-select option, #kk-si-section .kk-si-year-select option {
+        color: #1a1a2e; background: white; font-weight: 400;
+      }
 
       #kk-si-section .kk-si-year-panel { display: none; }
       #kk-si-section .kk-si-year-panel.active { display: block; }

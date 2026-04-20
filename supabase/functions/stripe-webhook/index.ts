@@ -82,6 +82,10 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const tradeCode   = md.trade_code;
   const notes       = md.notes || '';
   const tierPaid    = TIER_AMOUNT[reportType ?? ''] ?? 0;
+  // years_ordered was stored as comma-joined string in metadata (Stripe
+  // metadata values must be strings). Split it back to an array for Postgres.
+  const yearsOrdered = (md.years_ordered || '')
+    .split(',').map(s => s.trim()).filter(Boolean);
 
   if (!userId || !reportType || !tradeCode) {
     console.warn('Skipping — missing metadata', md);
@@ -97,6 +101,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       trade_code: tradeCode,
       report_type: reportType,
       tier_paid: tierPaid,
+      years_ordered: yearsOrdered,
       stripe_session_id: session.id,
       notes,
       status: 'pending',

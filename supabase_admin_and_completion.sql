@@ -121,6 +121,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS uidx_completion_requests_stripe_session
   ON public.completion_requests(stripe_session_id)
   WHERE stripe_session_id IS NOT NULL;
 
+-- Years ordered (per-year one-time pricing: filer picks which tax years they
+-- want docs for; quantity = years_ordered.length; total charged = tier_paid * length).
+ALTER TABLE public.completion_requests
+  ADD COLUMN IF NOT EXISTS years_ordered text[];
+
 ALTER TABLE public.completion_requests ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "users_see_own_requests"   ON public.completion_requests;

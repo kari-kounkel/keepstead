@@ -66,20 +66,26 @@ serve(async (req) => {
 
     // ── Inputs ──
     const body = await req.json().catch(() => ({}));
-    const reportType  = String(body.report_type || '');
-    const tradeCode   = String(body.trade_code  || '');
-    const notes       = String(body.notes       || '').slice(0, 2000);
-    const returnUrl   = String(body.return_url  || '');
+    const reportType    = String(body.report_type || '');
+    const tradeCode     = String(body.trade_code  || '');
+    const notes         = String(body.notes       || '').slice(0, 2000);
+    const returnUrl     = String(body.return_url  || '');
+    const yearsOrdered  = Array.isArray(body.years_ordered)
+      ? body.years_ordered.map((y: unknown) => String(y)).filter(y => /^\d{4}$/.test(y))
+      : [];
 
     const priceId = PRICE_IDS[reportType];
     if (!priceId) return json({ error: `Unknown report_type: ${reportType}` }, 400);
     if (!tradeCode) return json({ error: 'Missing trade_code' }, 400);
     if (!/^https?:\/\//.test(returnUrl)) return json({ error: 'Invalid return_url' }, 400);
+    if (!yearsOrdered.length) return json({ error: 'Pick at least one tax year' }, 400);
 
     // ── Stripe Checkout ──
+    // mode='payment' = one-time charge (not a subscription).
+    // quantity = number of tax years ordered. Price × quantity = total charged today.
     const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',
-      line_items: [{ price: priceId, quantity: 1 }],
+      mode: 'payment',
+      line_items: [{ price: priceId, quantity: yearsOrdered.length }],
       customer_email: user.email,
       client_reference_id: user.id,
       success_url: `${returnUrl}?kari_req=success`,
@@ -90,14 +96,9 @@ serve(async (req) => {
         report_type: reportType,
         trade_code: tradeCode,
         tier_paid: String(TIER_AMOUNT[reportType] ?? 0),
+        years_ordered: yearsOrdered.join(','),
+        years_count: String(yearsOrdered.length),
         notes
-      },
-      subscription_data: {
-        metadata: {
-          user_id: user.id,
-          report_type: reportType,
-          trade_code: tradeCode
-        }
       }
     });
 
