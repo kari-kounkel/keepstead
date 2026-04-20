@@ -277,6 +277,79 @@
     padding: 0.6rem 0.8rem;
     margin-top: 0.5rem;
   }
+
+  /* ── GRANT-COMP MODAL ── */
+  .grant-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(26, 26, 46, 0.6);
+    z-index: 1500;
+    align-items: center; justify-content: center; padding: 1rem;
+  }
+  .grant-overlay.open { display: flex; }
+  .grant-modal {
+    background: var(--cream);
+    border-radius: 16px;
+    width: 100%; max-width: 560px;
+    max-height: 90vh; overflow-y: auto;
+    padding: 1.8rem 2rem 1.5rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .grant-modal h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem; margin-bottom: 0.3rem;
+  }
+  .grant-modal .grant-for {
+    color: var(--muted); font-size: 0.9rem; margin-bottom: 1.25rem;
+  }
+  .grant-modal .grant-for strong { color: var(--ink); }
+  .grant-field { margin-bottom: 0.9rem; }
+  .grant-field label {
+    display: block; font-size: 0.8rem; font-weight: 500;
+    color: var(--muted); margin-bottom: 0.35rem;
+  }
+  .grant-field select, .grant-field textarea {
+    width: 100%; padding: 0.55rem 0.8rem;
+    font-family: inherit; font-size: 0.92rem;
+    border: 1.5px solid var(--border); border-radius: 8px;
+    background: white; color: var(--ink);
+  }
+  .grant-field select:focus, .grant-field textarea:focus { outline: none; border-color: var(--accent); }
+  .grant-field textarea { resize: vertical; min-height: 72px; }
+  .grant-years {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+  }
+  .grant-year-chip {
+    padding: 0.35rem 0.8rem;
+    border: 1.5px solid var(--border); border-radius: 999px;
+    background: white; color: var(--muted);
+    font-family: inherit; font-size: 0.82rem;
+    cursor: pointer; user-select: none;
+  }
+  .grant-year-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .grant-year-chip.selected { background: var(--accent); border-color: var(--accent); color: white; }
+  .grant-year-chip.selected::before { content: '✓ '; }
+  .grant-footer {
+    display: flex; justify-content: flex-end; gap: 0.6rem;
+    margin-top: 1.25rem; padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+  .grant-btn {
+    padding: 0.6rem 1.3rem; border-radius: 999px;
+    font-family: inherit; font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; border: none;
+  }
+  .grant-btn-primary { background: var(--accent); color: white; }
+  .grant-btn-primary:hover:not(:disabled) { background: #a83c27; }
+  .grant-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .grant-btn-secondary {
+    background: transparent; border: 1.5px solid var(--border); color: var(--muted);
+  }
+  .grant-btn-secondary:hover { border-color: var(--ink); color: var(--ink); }
+  .grant-err {
+    color: var(--accent); font-size: 0.85rem;
+    min-height: 1.2rem; text-align: right; margin-top: 0.5rem;
+  }
   details.detail-block summary {
     cursor: pointer;
     font-size: 0.85rem;
@@ -574,6 +647,7 @@ function renderUsers() {
       <td>${u.request_count}</td>
       <td>
         <button class="action" onclick="event.stopPropagation(); viewUserData('${u.id}')">View data</button>
+        <button class="action primary" onclick="event.stopPropagation(); openGrantModal('${u.id}', '${escape(u.email || '')}')">+ Grant</button>
       </td>
     </tr>
   `).join('');

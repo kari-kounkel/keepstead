@@ -37,8 +37,8 @@ const sbAdmin = createClient(
 const TIER_AMOUNT: Record<string, number> = {
   prep_worksheet: 49,
   tax_reference: 79,
-  bundle_single: 129,
-  bundle_unlimited: 199
+  bundle_single: 109,
+  bundle_unlimited: 159
 };
 
 serve(async (req) => {

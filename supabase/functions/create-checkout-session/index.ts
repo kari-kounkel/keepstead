@@ -3,13 +3,12 @@
 // Called by request-kari.js when user clicks "Continue to Payment"
 // Returns a Stripe Checkout URL the browser redirects to.
 //
-// Env vars (set in Supabase dashboard → Project Settings → Edge Functions):
+// Env vars (set in Supabase dashboard → Edge Functions → Secrets):
 //   STRIPE_SECRET_KEY
-//   STRIPE_PRICE_PREP_WORKSHEET      ($49/yr Preparer Worksheet)
-//   STRIPE_PRICE_TAX_REFERENCE       ($79/yr Tax Reference Doc)
-//   STRIPE_PRICE_BUNDLE_SINGLE       ($129/yr Bundle single trade)
-//   STRIPE_PRICE_BUNDLE_UNLIMITED    ($199/yr Bundle unlimited)
-//   ADMIN_NOTIFY_EMAIL               (optional — kari@karikounkel.com)
+//   STRIPE_PRICE_PREP_WORKSHEET      ($49 Preparer Worksheet, per-year one-time)
+//   STRIPE_PRICE_TAX_REFERENCE       ($79 Tax Reference Doc, per-year one-time)
+//   STRIPE_PRICE_BUNDLE_SINGLE       ($109 Bundle single trade, per-year one-time)
+//   STRIPE_PRICE_BUNDLE_UNLIMITED    ($159 Bundle unlimited, per-year one-time)
 //
 // Deploy:
 //   supabase functions deploy create-checkout-session
@@ -34,8 +33,8 @@ const PRICE_IDS: Record<string, string | undefined> = {
 const TIER_AMOUNT: Record<string, number> = {
   prep_worksheet: 49,
   tax_reference: 79,
-  bundle_single: 129,
-  bundle_unlimited: 199
+  bundle_single: 109,
+  bundle_unlimited: 159
 };
 
 const CORS = {
@@ -88,6 +87,7 @@ serve(async (req) => {
       line_items: [{ price: priceId, quantity: yearsOrdered.length }],
       customer_email: user.email,
       client_reference_id: user.id,
+      allow_promotion_codes: true,  // lets customers enter a Stripe promotion code at checkout
       success_url: `${returnUrl}?kari_req=success`,
       cancel_url:  `${returnUrl}?kari_req=cancelled`,
       metadata: {

@@ -34,14 +34,14 @@
     {
       key: 'bundle_single',
       name: 'Bundle — Single Trade',
-      price: 129,
-      blurb: 'Both the Preparer Worksheet and the Tax Reference Doc for this one trade. The full picture for a single business.',
+      price: 109,
+      blurb: 'Both the Preparer Worksheet and the Tax Reference Doc for this one trade. Save $19 vs buying them separately.',
       recommended: true
     },
     {
       key: 'bundle_unlimited',
       name: 'Bundle — Unlimited Trades',
-      price: 199,
+      price: 159,
       blurb: 'Both docs for every trade you run. Best for multi-business filers with more than one Schedule C or mixed income.'
     }
   ];
@@ -339,8 +339,8 @@
 
         <div class="kk-req-footer">
           <div class="kk-req-total">
-            <span id="kk-req-total-amount">$129</span>
-            <small id="kk-req-total-sub">$129 × 1 year · one-time charge</small>
+            <span id="kk-req-total-amount">$109</span>
+            <small id="kk-req-total-sub">$109 × 1 year · one-time charge</small>
           </div>
           <div class="kk-req-actions">
             <button class="kk-req-btn kk-req-btn-secondary" type="button" onclick="window.__kkReq.close()">Cancel</button>
